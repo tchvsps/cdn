@@ -60,6 +60,7 @@ extern set<unsigned int> unassigned_demand;
 
 extern vector<Demand*> demand_vector;
 extern vector<Service*> service_vector;
+extern connect_list* waiting_connect_head;
 
 extern unsigned int max_search_deep;
 extern map<pair<unsigned int, unsigned int>, signed int> static_bandwidth;

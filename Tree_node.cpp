@@ -56,6 +56,23 @@ unsigned int Tree_node::get_max_bandwidth(unsigned int bandwidth){
     return bandwidth;
 }
 
+unsigned int Tree_node::get_max_bandwidth_f(unsigned int bandwidth){
+    Tree_node* start_node;
+    Tree_node* stop_node;
+    start_node=parent;
+    stop_node=this;
+
+    while(start_node){
+        unsigned int edge_bandwidth=static_bandwidth[{ start_node->index, stop_node->index }];;
+        if(edge_bandwidth<bandwidth){
+            bandwidth=edge_bandwidth;
+        }
+        stop_node=start_node;
+        start_node=start_node->parent;
+    }
+    return bandwidth;
+}
+
 void Tree_node::update_tmp_bandwidth(unsigned int bandwidth){
     Tree_node* start_node;
     Tree_node* stop_node;

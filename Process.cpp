@@ -34,6 +34,7 @@ map<pair<unsigned int, unsigned int>, signed int> tmp_bandwidth;
 
 map<pair<unsigned int, unsigned int>, signed int> orignal_bandwidth;
 vector<signed int> orignal_demand;
+connect_list* waiting_connect_head=NULL;
 
 void Process::init_graph(char * topo[], int line_num){
     sscanf(topo[0],"%d %d %d",&service_cnt,&edge_cnt,&demand_cnt);
@@ -82,7 +83,7 @@ void Process::init_graph(char * topo[], int line_num){
 
         service_vector[service_index]->attached_demand=demand_index;
     }
-    demand_vector[0]->print_demand();
+//    demand_vector[0]->print_demand();
 
     //init unassigned
     for(unsigned int i=0; i<service_cnt; i++){
@@ -156,6 +157,43 @@ void Process::get_search_deep(void){
 
 }
 
+bool redistribut(unsigned int min_cost){
+
+
+    connect_list* now_connect_node=waiting_connect_head;
+    Connect* now_connect;
+
+//    cout<<"waiting list:"<<endl;
+//    while(now_connect_node){
+//        now_connect=now_connect_node->connect;
+//        cout<<now_connect->service_index<<"->"<<now_connect->demand_index<<": ";
+//        cout<<now_connect->length<<" "<<now_connect->bandwidth;
+//        cout<<now_connect->scheme2string()<<endl;
+//
+//        now_connect_node=now_connect_node->next;
+//    }
+
+    bool change_flg=false;
+
+    while(waiting_connect_head){
+        now_connect_node=waiting_connect_head;
+        waiting_connect_head=waiting_connect_head->next;
+
+        now_connect=now_connect_node->connect;
+        if(now_connect->length < min_cost){
+            now_connect->bandwidth=now_connect->leaf_node->get_max_bandwidth_f(demand_vector[now_connect->demand_index]->demand);
+            if(now_connect->bandwidth) {
+                service_vector[now_connect->service_index]->connect_queue.push(now_connect);
+                now_connect->fix_connect();
+                change_flg=true;
+            }
+        }
+
+    }
+
+    return change_flg;
+}
+
 void Process::find_scheme(void){
 
     while(!unassigned_demand.empty()){
@@ -169,7 +207,7 @@ void Process::find_scheme(void){
         set<unsigned int>::iterator service_iter;
         for(service_iter=assigned_service.begin();service_iter!=assigned_service.end(); ++service_iter){
             Service* service=service_vector[*service_iter];
-//            service->add_connect();
+            service->add_connect();
         }
         for(service_iter=unassigned_service.begin();service_iter!=unassigned_service.end(); ++service_iter){
             Service* service=service_vector[*service_iter];
@@ -195,35 +233,24 @@ void Process::find_scheme(void){
                 min_average_cost=tmp_average_cost;
                 min_service_index=(*service_iter);
             }
-
         }
 
 
-        bool redistribu_flg=false;
-        set<unsigned int>::iterator demand_iter;
-        for(demand_iter=unassigned_demand.begin();demand_iter!=unassigned_demand.end();++demand_iter){
-            Demand* demand=demand_vector[*demand_iter];
-            bool redistribute=false;
-            redistribute=demand->redistribute(min_average_cost);
-            if(redistribute){
-                redistribu_flg=true;
-            }
-        }
-
+        bool redistribu_flg=redistribut(min_average_cost);
 //        demand_vector[0]->print_demand();
         if(!redistribu_flg){
             Service* service=service_vector[min_service_index];
 //            if(min_service_index==0){
 //                cout<<service_vector[min_service_index]->scheme2string()<<endl;
 //            }
-            print_static_bandwidth();
+//            print_static_bandwidth();
             cout<<"fix ser:"<<min_service_index<<" cost:"<<min_average_cost<<" deep:"<<service_vector[min_service_index]->best_deepth<<endl;
-            cout<<service_vector[min_service_index]->scheme2string()<<endl;
+//            cout<<service_vector[min_service_index]->scheme2string()<<endl;
             service->fix_service();
-            print_static_bandwidth();
+//            print_static_bandwidth();
         }
-        demand_vector[0]->print_demand();
-        cout<<endl;
+//        demand_vector[0]->print_demand();
+//        cout<<endl;
     }
 
     cout<<endl<<endl<<endl<<"  GOOD JOB !!!!"<<endl<<endl;
@@ -250,13 +277,12 @@ string Process::scheme2string_f(void){
     return out_string;
 }
 
-void print_test_bandwidth(void){
-    cout<<"bandwidth:"<<endl;
-    unsigned int remander=edge_cnt*2%5;
-    unsigned int quoitent=edge_cnt*2/5;
+void print_map(map<pair<unsigned int, unsigned int>, signed int> tmp_map){
+    unsigned int remander=tmp_map.size()*2%5;
+    unsigned int quoitent=tmp_map.size()*2/5;
     map<pair<unsigned int, unsigned int>, signed int>::iterator bandwidth_map_iter;
 
-    bandwidth_map_iter=orignal_bandwidth.begin();
+    bandwidth_map_iter=tmp_map.begin();
     for(unsigned int i=0; i<remander; i++){
         cout<<(bandwidth_map_iter->first).first<<","<<(bandwidth_map_iter->first).second<<":" <<(bandwidth_map_iter->second)<<"; ";
         ++bandwidth_map_iter;
@@ -270,69 +296,28 @@ void print_test_bandwidth(void){
         }
         cout<<endl;
     }
-    if(bandwidth_map_iter==orignal_bandwidth.end()){
+    if(bandwidth_map_iter==tmp_map.end()){
         cout<<"OK"<<endl;
     }else{
         cout<<"BAD"<<endl;
     }
 }
 
+void print_test_bandwidth(void){
+    cout<<"bandwidth:"<<endl;
+    print_map(orignal_bandwidth);
+}
+
 void print_static_bandwidth(void){
     cout<<"bandwidth:"<<endl;
-    unsigned int remander=edge_cnt*2%5;
-    unsigned int quoitent=edge_cnt*2/5;
-    map<pair<unsigned int, unsigned int>, signed int>::iterator bandwidth_map_iter;
 
-    bandwidth_map_iter=static_bandwidth.begin();
-    for(unsigned int i=0; i<remander; i++){
-        cout<<(bandwidth_map_iter->first).first<<","<<(bandwidth_map_iter->first).second<<":" <<(bandwidth_map_iter->second)<<"; ";
-        ++bandwidth_map_iter;
-    }
-    if(remander){cout<<endl;}
-
-
-    for(unsigned int i=0; i<quoitent; i++){
-        for(unsigned int j=0; j<5; j++){
-            cout<<(bandwidth_map_iter->first).first<<","<<(bandwidth_map_iter->first).second<<":" <<(bandwidth_map_iter->second)<<"; ";
-            ++bandwidth_map_iter;
-        }
-        cout<<endl;
-    }
-    if(bandwidth_map_iter==static_bandwidth.end()){
-        cout<<"OK"<<endl;
-    }else{
-        cout<<"BAD"<<endl;
-    }
+    print_map(static_bandwidth);
 }
 
 void print_tmp_bandwidth(void){
 
     cout<<"tmp bandwidth:"<<endl;
-    unsigned int remander=tmp_bandwidth.size()%5;
-    unsigned int quoitent=tmp_bandwidth.size()/5;
-    map<pair<unsigned int, unsigned int>, signed int>::iterator bandwidth_map_iter;
-
-    bandwidth_map_iter=tmp_bandwidth.begin();
-    for(unsigned int i=0; i<remander; i++){
-        cout<<(bandwidth_map_iter->first).first<<","<<(bandwidth_map_iter->first).second<<":" <<(bandwidth_map_iter->second)<<"; ";
-        ++bandwidth_map_iter;
-    }
-    if(remander){cout<<endl;}
-
-
-    for(unsigned int i=0; i<quoitent; i++){
-        for(unsigned int j=0; j<5; j++){
-            cout<<(bandwidth_map_iter->first).first<<","<<(bandwidth_map_iter->first).second<<":" <<(bandwidth_map_iter->second)<<"; ";
-            ++bandwidth_map_iter;
-        }
-        cout<<endl;
-    }
-    if(bandwidth_map_iter==tmp_bandwidth.end()){
-        cout<<"OK"<<endl;
-
-    }else{
-        cout<<"BAD"<<endl;
-    }
+    print_map(tmp_bandwidth);
 }
 
 void print_test_demand(void){

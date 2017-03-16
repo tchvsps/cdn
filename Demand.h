@@ -20,11 +20,9 @@ public:
     attached_service(_attached_service),
     demand(_demand),
     tmp_demand(_demand),
-    assigned(false)
+    assigned(false),
+    connect_head(NULL)
     {};
-
-    bool redistribute(unsigned int next_cost);
-    void print_connect_list(void);
 
     void print_demand(void);
 

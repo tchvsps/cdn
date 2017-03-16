@@ -12,20 +12,7 @@
 //	queue<Connect*> connect_queue;
 //};
 
-bool Demand::redistribute(unsigned int next_cost){
-//    print_connect_list();
-    return false;
-}
 
-void Demand::print_connect_list(void){
-    connect_list* now_connect_node=connect_head;
-    while(now_connect_node){
-        Connect* now_connect=now_connect_node->connect;
-        cout<<now_connect->service_index<<"->"<<now_connect->demand_index<<": ";
-        cout<<now_connect->length<<" "<<now_connect->bandwidth<<endl;
-        now_connect_node=now_connect_node->next;
-    }
-}
 void Demand::print_demand(void){
 //    for(unsigned int i=0; i<demand_cnt; i++){
 //        printf(" %2d",i);
