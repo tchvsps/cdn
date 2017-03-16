@@ -436,6 +436,8 @@ string Service::scheme2string_f(void)
     string connect_string="";
     unsigned int connect_size=connect_queue.size();
 
+    cost_sum+=deploy_cost;
+
     for(unsigned int i=0; i<connect_size; i++)
     {
         Connect* connect=connect_queue.front();
@@ -443,6 +445,7 @@ string Service::scheme2string_f(void)
         connect_queue.push(connect);
 
         connect_string=connect->scheme2string_f();
+        cost_sum+=connect->bandwidth*connect->length;
         service_string.append(connect_string);
     }
 

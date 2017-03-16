@@ -12,6 +12,7 @@ void deploy_server(char * topo[MAX_EDGE_NUM], int line_num,char * filename)
 	// 直接调用输出文件的方法输出到指定文件中(ps请注意格式的正确性，如果有解，第一行只有一个数据；第二行为空；第三行开始才是具体的数据，数据之间用一个空格分隔开)
 
     Process* my_process=new Process();
+
     my_process->init_graph(topo,line_num);
 //    demand_vector[0]->print_demand();
 //    print_test_demand();
@@ -27,15 +28,22 @@ void deploy_server(char * topo[MAX_EDGE_NUM], int line_num,char * filename)
 //    cout<<static_bandwidth[{2,0}]<<endl;
 
     my_process->find_scheme();
+    cost_sum=0;
     string out_string=my_process->scheme2string_f();
+
     demand_vaild_detect();
 
-    cout<<out_string<<endl;
+
+
     if(!valid_scheme){
         while(1){
             cout<<"INVALID SCHEME"<<endl;
         }
     }
+    cout<<"Cost Sum:"<<cost_sum<<endl;
+    cout<<"Scheme:"<<endl;
+    cout<<out_string<<endl;
+
 
 
 	// 需要输出的内容

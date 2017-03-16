@@ -52,6 +52,7 @@ extern unsigned int service_cnt;
 extern unsigned int demand_cnt;
 extern unsigned int edge_cnt;
 extern unsigned int deploy_cost;
+extern unsigned int cost_sum;
 
 extern set<unsigned int> assigned_service;
 extern set<unsigned int> unassigned_service;

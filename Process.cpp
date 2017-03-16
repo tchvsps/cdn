@@ -20,6 +20,8 @@ unsigned int demand_cnt;
 unsigned int edge_cnt;
 unsigned int deploy_cost;
 
+unsigned int cost_sum;
+
 set<unsigned int> assigned_service;
 set<unsigned int> unassigned_service;
 set<unsigned int> assigned_demand;
