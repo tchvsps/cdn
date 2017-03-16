@@ -278,8 +278,8 @@ string Process::scheme2string_f(void){
 }
 
 void print_map(map<pair<unsigned int, unsigned int>, signed int> tmp_map){
-    unsigned int remander=tmp_map.size()*2%5;
-    unsigned int quoitent=tmp_map.size()*2/5;
+    unsigned int remander=tmp_map.size()%5;
+    unsigned int quoitent=tmp_map.size()/5;
     map<pair<unsigned int, unsigned int>, signed int>::iterator bandwidth_map_iter;
 
     bandwidth_map_iter=tmp_map.begin();
@@ -326,6 +326,11 @@ void print_test_demand(void){
         cout<<" "<<orignal_demand[i];
     }
     cout<<endl;
+}
+void demand_vaild_detect(void){
+    for(unsigned int i=0; i<demand_cnt;i++){
+        if(orignal_demand[i]!=0){valid_scheme=false;}
+    }
 }
 
 

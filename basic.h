@@ -73,6 +73,7 @@ void print_test_demand(void);
 void print_test_bandwidth(void);
 void print_static_bandwidth(void);
 void print_tmp_bandwidth(void);
+void demand_vaild_detect(void);
 
 
 #endif // __BASIC_H
