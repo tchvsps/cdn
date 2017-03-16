@@ -106,6 +106,41 @@ inline Tree_node* insert_search_list(Tree_node* head,Tree_node* new_node)
 
 }
 
+inline connect_list* insert_connect(connect_list* head,connect_list* new_node)
+{
+    new_node->next=NULL;
+
+
+    if(!head)
+    {
+        head=new_node;
+    }
+    else if(head->connect->length > new_node->connect->length)
+    {
+        new_node->next=head;
+        head=new_node;
+    }
+    else
+    {
+        connect_list* older_node=head;
+
+        while(older_node->next)
+        {
+            if(older_node->next->connect->length > new_node->connect->length)
+            {
+                new_node->next=older_node->next;
+                break;
+            }
+            else
+            {
+                older_node=older_node->next;
+            }
+        }
+        older_node->next=new_node;
+    }
+    return head;
+}
+
 void Service::search_connect(void)
 {
     cout<<endl<<"service:"<<index<<endl;
@@ -295,18 +330,20 @@ void Service::fix_service(void)
     {
         Connect* connect=connect_queue.front();
         connect_queue.pop();
+        if(connect->bandwidth == 0)
+        {
+            free(connect);
+            continue;
+        }
         if(connect->length <= best_deepth)
         {
-            if(connect->bandwidth == 0)
-            {
-                continue;
-            }
             connect->fix_connect();
             connect_queue.push(connect);
         }
         else
         {
-            demand_vector[connect->demand_index]->connect_queue.push(connect);
+            connect_list* new_connect_node=new connect_list(connect);
+            demand_vector[connect->demand_index]->connect_head=insert_connect(demand_vector[connect->demand_index]->connect_head,new_connect_node);
         }
     }
 }

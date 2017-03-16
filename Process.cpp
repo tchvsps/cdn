@@ -12,6 +12,7 @@
 //Process::init_graph(char * topo[], int line_num){
 //
 //}
+
 bool valid_scheme=true;
 
 unsigned int service_cnt;

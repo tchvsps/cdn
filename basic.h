@@ -37,6 +37,7 @@ typedef struct edge_list
         next=NULL;
     }
 }edge_list;
+
 edge_list* insert_edge(edge_list* head, edge_list* new_node);
 
 #include"Tree_node.h"

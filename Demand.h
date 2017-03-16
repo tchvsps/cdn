@@ -1,3 +1,14 @@
+
+typedef struct connect_list{
+    Connect* connect;
+    connect_list* next;
+    connect_list(Connect* _connect){
+        connect=_connect;
+        next=NULL;
+    }
+}connect_list;
+inline connect_list* insert_connect(connect_list* head,connect_list* new_node);
+
 class Demand
 {
 public:
@@ -13,6 +24,8 @@ public:
     {};
 
     bool redistribute(unsigned int next_cost);
+    void print_connect_list(void);
+
     void print_demand(void);
 
 public:
@@ -23,6 +36,9 @@ public:
 	bool assigned;
 
 	//change to sorted list
-	queue<Connect*> connect_queue;
+	connect_list* connect_head;
 
 };
+
+
+

@@ -1,3 +1,5 @@
+#ifndef __CONNECT_H
+#define __CONNECT_H
 #include"basic.h"
 
 class Connect
@@ -28,5 +30,7 @@ public:
 	unsigned int bandwidth;
 	Tree_node* leaf_node;
 };
+
+#endif
 
 
