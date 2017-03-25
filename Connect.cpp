@@ -27,6 +27,10 @@ void Connect::tmp_fix_connect(void)
 
 void Connect::fix_connect(void)
 {
+
+    service_vector[service_index]->connect_queue.push(this);
+    demand_vector[demand_index]->connect_vector.push_back(this);
+
     demand_vector[demand_index]->demand-=bandwidth;
 
     if(demand_vector[demand_index]->demand == 0)

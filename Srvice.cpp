@@ -77,7 +77,7 @@ inline Tree_node* insert_search_list(Tree_node* head,Tree_node* new_node)
     {
         head=new_node;
     }
-    else if(head->search_deep>new_node->search_deep)
+    else if(head->search_deep >= new_node->search_deep)
     {
         new_node->brother=head;
         head=new_node;
@@ -88,7 +88,7 @@ inline Tree_node* insert_search_list(Tree_node* head,Tree_node* new_node)
 
         while(older_node->brother)
         {
-            if(older_node->brother->search_deep> new_node->search_deep)
+            if(older_node->brother->search_deep >= new_node->search_deep)
             {
                 new_node->brother=older_node->brother;
                 break;
@@ -113,7 +113,7 @@ inline connect_list* insert_connect(connect_list* head,connect_list* new_node)
     {
         head=new_node;
     }
-    else if(head->connect->length > new_node->connect->length)
+    else if(head->connect->length >= new_node->connect->length)
     {
         new_node->next=head;
         head=new_node;
@@ -124,7 +124,7 @@ inline connect_list* insert_connect(connect_list* head,connect_list* new_node)
 
         while(older_node->next)
         {
-            if(older_node->next->connect->length > new_node->connect->length)
+            if(older_node->next->connect->length >= new_node->connect->length)
             {
                 new_node->next=older_node->next;
                 break;
@@ -242,7 +242,7 @@ void Service::add_connect(void)
 {
     while(search_head)
     {
-        if(search_head->search_deep > max_search_deep+5)
+        if(search_head->search_deep > max_add_deep+3)
         {
             break;
         }
@@ -401,7 +401,6 @@ void Service::fix_service(void)
         if(connect->length <= best_deepth)
         {
             connect->fix_connect();
-            connect_queue.push(connect);
         }
         else
         {

@@ -32,6 +32,7 @@ public:
 	unsigned int demand;
 	unsigned int tmp_demand;
 	bool assigned;
+	vector<Connect*> connect_vector;
 
 	//change to sorted list
 	connect_list* connect_head;

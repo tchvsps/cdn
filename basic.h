@@ -13,6 +13,9 @@ using namespace std;
 #include <sstream>
 #include <iostream>
 
+#include<time.h>
+#include<utime.h>
+
 #define MAX_SERVICE_CNT 1000
 #define MAX_DEMAND_CNT   500
 #define NO_CONNECT_DEMAND 1000
@@ -64,6 +67,10 @@ extern vector<Service*> service_vector;
 extern connect_list* waiting_connect_head;
 
 extern unsigned int max_search_deep;
+extern unsigned int max_add_deep;
+
+extern unsigned int predef_deep;
+
 extern map<pair<unsigned int, unsigned int>, signed int> static_bandwidth;
 extern map<pair<unsigned int, unsigned int>, signed int> tmp_bandwidth;
 
