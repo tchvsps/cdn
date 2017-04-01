@@ -23,39 +23,57 @@ using namespace std;
 #define SSTR( x ) static_cast< std::ostringstream & >( \
         ( std::ostringstream() << std::dec << x ) ).str()
 
-typedef struct edge_list
+class Connect;
+
+struct edge
 {
 	unsigned int length;
+	unsigned int edge_bandwidth;
+	int test_edge_bandwidth;
+	unsigned int tmp_edge_bandwidth;
 	unsigned int start_node;
 	unsigned int stop_node;
-	struct edge_list* next;
+	struct edge* next;
+	struct edge* brother;
+	unsigned int wast_band;
+	vector<Connect*> connect_vector;
 
-	edge_list(
+	edge(
 	unsigned int _length,
     unsigned int _start_node,
-    unsigned int _stop_node){
+    unsigned int _stop_node,
+    unsigned int _edge_bandwidth
+    ){
         length=_length;
         start_node=_start_node;
         stop_node=_stop_node;
+        edge_bandwidth=_edge_bandwidth;
+        tmp_edge_bandwidth=_edge_bandwidth;
+        test_edge_bandwidth=_edge_bandwidth;
         next=NULL;
+        brother=NULL;
+        wast_band=0;
     }
-}edge_list;
+};
 
-edge_list* insert_edge(edge_list* head, edge_list* new_node);
 
-#include"Tree_node.h"
+
+edge* insert_edge(edge* head, edge* new_node);
+
 #include"Connect.h"
 #include"Demand.h"
 #include"Service.h"
+
 #include"Process.h"
 
 extern bool valid_scheme;
 
-extern unsigned int service_cnt;
+extern unsigned int node_cnt;
 extern unsigned int demand_cnt;
 extern unsigned int edge_cnt;
 extern unsigned int deploy_cost;
 extern unsigned int cost_sum;
+extern unsigned int wast_cost;
 
 extern set<unsigned int> assigned_service;
 extern set<unsigned int> unassigned_service;
@@ -64,6 +82,8 @@ extern set<unsigned int> unassigned_demand;
 
 extern vector<Demand*> demand_vector;
 extern vector<Service*> service_vector;
+extern vector<struct node*> node_vector;
+
 extern connect_list* waiting_connect_head;
 
 extern unsigned int max_search_deep;
@@ -71,8 +91,9 @@ extern unsigned int max_add_deep;
 
 extern unsigned int predef_deep;
 
-extern map<pair<unsigned int, unsigned int>, signed int> static_bandwidth;
-extern map<pair<unsigned int, unsigned int>, signed int> tmp_bandwidth;
+extern map<pair<unsigned int, unsigned int>, signed int> static_edge_bandwidth;
+extern map<pair<unsigned int, unsigned int>, signed int> tmp_edge_bandwidth;
+extern map<unsigned int, Service*> node2service;
 
 extern map<pair<unsigned int, unsigned int>, signed int> orignal_bandwidth;
 extern vector<signed int> orignal_demand;
@@ -82,6 +103,16 @@ void print_test_bandwidth(void);
 void print_static_bandwidth(void);
 void print_tmp_bandwidth(void);
 void demand_vaild_detect(void);
+
+connect_list* insert_connect(connect_list* head,connect_list* new_node);
+
+
+extern unsigned int pre_fix_cnt;
+extern string pre_fix_str;
+extern unsigned int next_fix_cnt;
+extern unsigned int max_length;
+
+
 
 
 #endif // __BASIC_H

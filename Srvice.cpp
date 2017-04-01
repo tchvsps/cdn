@@ -1,504 +1,202 @@
 #include"basic.h"
-
-//class Service
-//{
-//public:
-//    Service(unsigned int _index):
-//    index(_index),
-//    attached_demand(NO_CONNECT_DEMAND),
-//    edge_head(NULL),
-//    search_head(NULL)
-//    {};
-//
-//    void search_route(void);
-//    unsigned int get_average_cost(void);
-//    void fix_service(void);
-//
-//
-//public:
-//	unsigned int index;
-//	unsigned int attached_demand;
-//	edge_list* edge_head;
-//	tree_node_list* search_head;
-//	queue<Tree_node*> demand_queue;
-//	queue<Connect*> connect_queue;
-//};
-
-void Service::jude_new_node(Tree_node* new_tree_node)
+inline connect_list* insert_connect_head(connect_list* head, connect_list* new_head)
 {
-
-    unsigned int demand_index;
-    demand_index=service_vector[new_tree_node->index]->attached_demand;
-    if(demand_index!=NO_CONNECT_DEMAND && !demand_vector[demand_index]->assigned)
+    new_head->bigger=NULL;
+    if(!head){return new_head;}
+    if(head->connect->length > new_head->connect->length)
     {
+        new_head->bigger=head;
+        return new_head;
+    }
 
-        demand_queue.push(new_tree_node);
-
-        unsigned int demand_index=service_vector[new_tree_node->index]->attached_demand;
-        unsigned int service_index=index;
-        //add to connect_queue
-
-        Connect* new_connect=new Connect(
-            demand_index,
-            service_index,
-            new_tree_node->deepth,
-            new_tree_node
-        );
-
-//                    cout<<new_connect->scheme2string()<<endl;
-        new_connect->bandwidth=new_tree_node->get_max_bandwidth
-        (demand_vector[demand_index]->tmp_demand);
-        if(new_connect->bandwidth==0)
+    connect_list* now_head=head;
+    while(now_head->bigger)
+    {
+        if(now_head->bigger->connect->length >= new_head->connect->length)
         {
-            free(new_connect);
+            new_head->bigger=now_head->bigger;
+            now_head->bigger=new_head;
+            return head;
         }
-        else
-        {
-//            cout<<endl<<"new queue upda:"<<endl;
-//            demand_vector[0]->print_demand();
-//            print_tmp_bandwidth();
 
-            new_connect->tmp_fix_connect();
-            connect_queue.push(new_connect);
-
-//            demand_vector[0]->print_demand();
-//            print_tmp_bandwidth();
-        }
+        now_head=now_head->bigger;
     }
-
-}
-
-inline Tree_node* insert_search_list(Tree_node* head,Tree_node* new_node)
-{
-    new_node->brother=NULL;
-
-
-    if(!head)
-    {
-        head=new_node;
-    }
-    else if(head->search_deep >= new_node->search_deep)
-    {
-        new_node->brother=head;
-        head=new_node;
-    }
-    else
-    {
-        Tree_node* older_node=head;
-
-        while(older_node->brother)
-        {
-            if(older_node->brother->search_deep >= new_node->search_deep)
-            {
-                new_node->brother=older_node->brother;
-                break;
-            }
-            else
-            {
-                older_node=older_node->brother;
-            }
-        }
-        older_node->brother=new_node;
-    }
+    now_head->bigger=new_head;
     return head;
-
-}
-
-
-inline connect_list* insert_connect(connect_list* head,connect_list* new_node)
-{
-    new_node->next=NULL;
-
-    if(!head)
-    {
-        head=new_node;
-    }
-    else if(head->connect->length >= new_node->connect->length)
-    {
-        new_node->next=head;
-        head=new_node;
-    }
-    else
-    {
-        connect_list* older_node=head;
-
-        while(older_node->next)
-        {
-            if(older_node->next->connect->length >= new_node->connect->length)
-            {
-                new_node->next=older_node->next;
-                break;
-            }
-            else
-            {
-                older_node=older_node->next;
-            }
-        }
-        older_node->next=new_node;
-    }
-
-    return head;
-}
-
-
-void Service::search_connect(void)
-{
-//    cout<<endl<<"service:"<<index<<endl;
-    tmp_bandwidth.clear();
-
-    set<unsigned int>::iterator demand_iter;
-    for(demand_iter=unassigned_demand.begin(); demand_iter!=unassigned_demand.end(); ++demand_iter)
-    {
-        demand_vector[*demand_iter]->tmp_demand=demand_vector[*demand_iter]->demand;
-    }
-//    demand_vector[0]->print_demand();
-
-
-    unsigned int connect_size=connect_queue.size();
-    for(unsigned int i=0; i<connect_size; i++)
-    {
-        Connect* connect=connect_queue.front();
-        connect_queue.pop();
-
-        if(!demand_vector[connect->demand_index]->assigned)
-        {
-            connect->bandwidth=connect->leaf_node->get_max_bandwidth
-            (demand_vector[connect->demand_index]->tmp_demand);
-
-            if(connect->bandwidth)
-            {
-//                cout<<endl<<"remain queue upda:"<<endl;
-//                demand_vector[0]->print_demand();
-//                print_tmp_bandwidth();
-
-                connect->tmp_fix_connect();
-                connect_queue.push(connect);
-
-//                demand_vector[0]->print_demand();
-//                print_tmp_bandwidth();
-
-            }
-        }
-    }
-
-    while(search_head)
-    {
-        if(search_head->search_deep > max_search_deep)
-        {
-            break;
-        }
-        else
-        {
-//            cout<<"search node: "<<search_head->index<<endl;
-            Tree_node* now_tree_node;
-            edge_list* now_edge_node;
-
-            now_tree_node=search_head;
-            search_head=search_head->brother;
-            now_edge_node=now_tree_node->bfs_position;
-
-
-
-            unsigned int new_node_index=now_edge_node->stop_node;
-            bool searched_flg=false;
-
-            searched_flg=now_tree_node->is_search(new_node_index);
-            if(!searched_flg)
-            {
-
-                Tree_node* new_tree_node=new Tree_node(
-                    new_node_index,
-                    now_tree_node->deepth+now_edge_node->length,
-                    now_tree_node);
-                new_tree_node->bfs_position=service_vector[new_node_index]->edge_head;
-                new_tree_node->search_deep=new_tree_node->deepth+new_tree_node->bfs_position->length;
-
-                search_head=insert_search_list(search_head,new_tree_node);
-                jude_new_node(new_tree_node);
-//                cout<<"    add new node:"<<new_tree_node->index<<" route:";
-//                new_tree_node->print_route();
-//                print_search_list();
-
-
-
-            }
-
-            //move the next edge
-            now_tree_node->bfs_position=now_tree_node->bfs_position->next;
-            if(now_tree_node->bfs_position)
-            {
-                now_tree_node->search_deep=now_tree_node->deepth+now_tree_node->bfs_position->length;
-                search_head=insert_search_list(search_head,now_tree_node);
-//                print_search_list();
-            }
-
-        }
-    }
-}
-
-
-
-void Service::add_connect(void)
-{
-    while(search_head)
-    {
-        if(search_head->search_deep > max_add_deep+3)
-        {
-            break;
-        }
-        else
-        {
-            Tree_node* now_tree_node;
-            edge_list* now_edge_node;
-
-            now_tree_node=search_head;
-            search_head=search_head->brother;
-            now_edge_node=now_tree_node->bfs_position;
-
-            unsigned int new_node_index=now_edge_node->stop_node;
-            bool searched_flg=false;
-
-            searched_flg=now_tree_node->is_search(new_node_index);
-            if(!searched_flg)
-            {
-                Tree_node* new_tree_node=new Tree_node(
-                    new_node_index,
-                    now_tree_node->deepth+now_edge_node->length,
-                    now_tree_node);
-                new_tree_node->bfs_position=service_vector[new_node_index]->edge_head;
-                new_tree_node->search_deep=new_tree_node->deepth+new_tree_node->bfs_position->length;
-
-                search_head=insert_search_list(search_head,new_tree_node);
-
-                unsigned int demand_index=service_vector[new_tree_node->index]->attached_demand;
-                if(demand_index!=NO_CONNECT_DEMAND && !demand_vector[demand_index]->assigned)
-                {
-                    unsigned int demand_index=service_vector[new_tree_node->index]->attached_demand;
-                    unsigned int service_index=index;
-                    //add to connect_queue
-
-                    Connect* new_connect=new Connect(
-                        demand_index,
-                        service_index,
-                        new_tree_node->deepth,
-                        new_tree_node
-                    );
-                    new_connect->bandwidth=0;
-                    connect_list* new_connect_node=new connect_list(new_connect);
-                    waiting_connect_head=insert_connect(waiting_connect_head,new_connect_node);
-                }
-            }
-
-            //move the next edge
-            now_tree_node->bfs_position=now_tree_node->bfs_position->next;
-            if(now_tree_node->bfs_position)
-            {
-                now_tree_node->search_deep=now_tree_node->deepth+now_tree_node->bfs_position->length;
-                search_head=insert_search_list(search_head,now_tree_node);
-            }
-        }
-    }
 }
 
 float Service::get_average_cost(void)
 {
+    //init tmp_demand
+    set<unsigned int>::iterator demand_iter;
+    for(demand_iter=unassigned_demand.begin(); demand_iter!=unassigned_demand.end(); demand_iter++)
+    {
+        Demand* demand=demand_vector[*demand_iter];
+        demand->tmp_demand=demand->demand;
+    }
+    //init tmp_connect_bandwidth
+    connect_list* list_head;
+    connect_list* list_node;
+    list_head=connect_head;
+    while(list_head)
+    {
+        list_node=list_head;
+        while(list_node)
+        {
+            list_node->connect->tmp_connect_bandwidth=list_node->connect->connect_bandwidth;
+            list_node->connect->edge_tmp_init();
+            list_node=list_node->next;
+        }
+
+        list_head=list_head->bigger;
+    }
 
     unsigned int cost_sum=deploy_cost;
     unsigned int bandwidth_sum=0;
+    unsigned int tmp_bandwidth_sum=0;
 
-    float average_cost=1000;
+    float min_average_cost=1000;
     float tmp_average_cost=1000;
 
-    unsigned int seprate_length=0;
-    unsigned int last_seprate_length=0;
+    struct connect_list* head=connect_head;
+    struct connect_list* node;
+    struct connect_list* last_head=connect_head;
 
-    bool stop_flg=false;
+//    cout<<endl<<"  service "<<index<<endl;
+//    print_connet_list(connect_head);
 
-    unsigned int connect_size=connect_queue.size();
-    for(unsigned int i=0; i<connect_size; i++)
+    while(head)
     {
-        Connect* connect=connect_queue.front();
-        connect_queue.pop();
+        if(head->connect->length > min_average_cost){
+            this->bandwidth_sum=bandwidth_sum;
+            this->best_deepth=last_head->connect->length;
+            return min_average_cost;
+        }
 
-        if(!stop_flg)
+        node=head;
+        tmp_bandwidth_sum=0;
+        while(node)
         {
-//            cout<<connect->length<<" "<<bandwidth_sum<<endl;
-            if(connect->length == seprate_length)
+            Connect* connect=node->connect;
+
+
+//            cout<<"tmp:"<<connect->tmp_connect_bandwidth<<" dem:"<<demand_vector[connect->demand_index]->tmp_demand<<endl;
+            connect->best_connect_bandwidth=min(connect->tmp_connect_bandwidth,demand_vector[connect->demand_index]->tmp_demand);
+            if(connect->best_connect_bandwidth)
             {
-                cost_sum+=connect->length*connect->bandwidth;
-                bandwidth_sum+=connect->bandwidth;
+                tmp_bandwidth_sum+=connect->best_connect_bandwidth;
+//                cout<<connect->to_string()<<endl;
+                node->connect->tmp_fix_connect();
             }
-            else
-            {
+//            cout<<"tmp:"<<connect->tmp_connect_bandwidth<<" dem:"<<demand_vector[connect->demand_index]->tmp_demand<<endl;
 
-                if(bandwidth_sum==0)
-                {
-                    tmp_average_cost=1000;
-                }
-                else
-                {
-                    tmp_average_cost=(float)cost_sum/bandwidth_sum;
-                }
-
-                if(tmp_average_cost<=average_cost)
-                {
-                    average_cost=tmp_average_cost;
-                    stop_flg=false;
-                    cost_sum+=connect->length*connect->bandwidth;
-                    bandwidth_sum+=connect->bandwidth;
-                    last_seprate_length=seprate_length;
-                    seprate_length=connect->length;
-                }
-                else
-                {
-                    best_deepth=last_seprate_length;
-                    stop_flg=true;
-                    continue;
-                }
-            }
+            node=node->next;
         }
-        connect_queue.push(connect);
+        if(bandwidth_sum+tmp_bandwidth_sum==0){tmp_average_cost=1000;}
+        else{tmp_average_cost=(float)(cost_sum+tmp_bandwidth_sum*head->connect->length)/(tmp_bandwidth_sum+bandwidth_sum);}
+
+        if(tmp_average_cost<=min_average_cost){
+            bandwidth_sum+=tmp_bandwidth_sum;
+            cost_sum+=tmp_bandwidth_sum*head->connect->length;
+            min_average_cost=tmp_average_cost;
+//            cout<<"band sum:"<<bandwidth_sum<<" cost sum:"<<cost_sum<<" ave cost:"<<min_average_cost<<endl;
+
+        }else{
+            this->bandwidth_sum=bandwidth_sum;
+            this->best_deepth=last_head->connect->length;
+            return min_average_cost;
+        }
+
+
+        last_head=head;
+        head=head->bigger;
     }
-    if(!stop_flg)
-    {
-        if(bandwidth_sum==0)
-        {
-            tmp_average_cost=1000;
-        }
-        else
-        {
-            tmp_average_cost=(float)cost_sum/bandwidth_sum;
-        }
 
-        if(tmp_average_cost<=average_cost)
-        {
-            average_cost=tmp_average_cost;
-            best_deepth=seprate_length;
-        }
-        else
-        {
-            best_deepth=last_seprate_length;
-        }
+    if(head){
+        this->bandwidth_sum=bandwidth_sum;
+        this->best_deepth=last_head->connect->length;
+    }else{
+        this->bandwidth_sum=0;
+        this->best_deepth=0;
     }
-    return average_cost;
+
+    return min_average_cost;
 }
 
 void Service::fix_service(void)
 {
+    //update assigned service
     assigned_service.insert(index);
     unassigned_service.erase(unassigned_service.find(index));
 
-    unsigned int connect_size=connect_queue.size();
-    for(unsigned int i=0; i<connect_size; i++)
+    connect_list* list_head;
+    connect_list* list_node;
+
+    while(connect_head)
     {
-        Connect* connect=connect_queue.front();
-        connect_queue.pop();
-        if(connect->bandwidth == 0)
+        list_head=connect_head;
+        connect_head=connect_head->bigger;
+
+        if(list_head->connect->length<=best_deepth)
         {
-            free(connect);
-            continue;
-        }
-        if(connect->length <= best_deepth)
-        {
-            connect->fix_connect();
+            //add to fix connect
+            list_head->bigger=fix_connect_head;
+            fix_connect_head=list_head;
+
+            //fix connect
+            list_node=list_head;
+            while(list_node)
+            {
+                if(list_node->connect->best_connect_bandwidth)
+                {
+                    list_node->connect->fix_connect();
+                }
+
+                list_node=list_node->next;
+            }
         }
         else
         {
-            connect_list* new_connect_node=new connect_list(connect);
-            waiting_connect_head=insert_connect(waiting_connect_head,new_connect_node);
+            //add to wait connet list
+            waiting_connect_head=insert_connect_head(waiting_connect_head,list_head);
         }
     }
 }
 
-string Service::scheme2string(void)
+void Service::print_connect(void)
 {
-    string service_string="";
-    string connect_string="";
-    unsigned int connect_size=connect_queue.size();
-
-    for(unsigned int i=0; i<connect_size; i++)
-    {
-        Connect* connect=connect_queue.front();
-        connect_queue.pop();
-        connect_queue.push(connect);
-
-        connect_string=connect->scheme2string();
-        service_string.append(connect_string);
-    }
-
-    return service_string;
+    cout<<"service "<<index<<"'s connect: ";
+    print_connet_list(connect_head);
+    cout<<endl;
 }
 
-string Service::scheme2string_f(void)
+string Service::to_string(void)
 {
     string service_string="";
-    string connect_string="";
-    unsigned int connect_size=connect_queue.size();
-
+    connect_list* list_head;
+    connect_list* list_node;
     cost_sum+=deploy_cost;
 
-    for(unsigned int i=0; i<connect_size; i++)
+    list_head=fix_connect_head;
+    while(list_head)
     {
-        Connect* connect=connect_queue.front();
-        connect_queue.pop();
-        connect_queue.push(connect);
+        list_node=list_head;
+        while(list_node)
+        {
+            if(list_node->connect->best_connect_bandwidth)
+            {
+                service_string=service_string.append(list_node->connect->to_string_f());
+                next_fix_cnt++;
 
-        connect_string=connect->scheme2string_f();
-        cost_sum+=connect->bandwidth*connect->length;
-        service_string.append(connect_string);
+                cost_sum+=list_node->connect->best_connect_bandwidth*list_node->connect->length;
+                if(list_node->connect->length > max_length)
+                    max_length=list_node->connect->length;
+            }
+
+            list_node=list_node->next;
+        }
+
+        list_head=list_head->bigger;
     }
-
     return service_string;
 }
-
-void Service::print_edge_list(void)
-{
-    edge_list* edge=edge_head;
-    while(edge)
-    {
-        cout<<" "<<edge->start_node<<"->"<<edge->stop_node<<"("<<edge->length<<")";
-        edge=edge->next;
-    }
-    cout<<endl;
-}
-
-void Service::print_search_list(void)
-{
-    Tree_node* search_node=search_head;
-    cout<<"    search_list: ";
-    while(search_node)
-    {
-        cout<<"->"<<search_node->index<<"("<<search_node->search_deep<<")";
-        search_node=search_node->brother;
-    }
-    cout<<endl;
-}
-
-void Service::print_demand_set(void)
-{
-    for(unsigned int i=0; i<demand_queue.size(); i++)
-    {
-        Tree_node* leaf;
-        leaf=demand_queue.front();
-        demand_queue.pop();
-        demand_queue.push(leaf);
-        cout<<index<<"->"<<leaf->index<<" :deepth: "<<leaf->deepth<<endl;
-    }
-
-}
-
-void Service::print_connec_queue(void)
-{
-    unsigned int queue_size;
-    queue_size=connect_queue.size();
-    Connect* connect;
-    for(unsigned int i=0; i<queue_size; i++)
-    {
-        connect=connect_queue.front();
-        connect_queue.pop();
-        connect_queue.push(connect);
-        cout<<" "<<connect->length;
-    }
-    cout<<endl;
-}
-
