@@ -19,57 +19,8 @@ void deploy_server(char * topo[MAX_EDGE_NUM], int line_num,char * filename)
     //fix the must
     my_process->pre_process();
 
-    //get all need connect
-        //search from the demand point
-        //just using the normal search algrithom
-        //always create a new connect and add to the 2 list 1 vector
-    //demand connect_list sorted
-    //servic connect_list sorted
-    //edge connect_list vector
-    predef_deep=5;
+    predef_deep=10;
     my_process->search_connect();
 
-//    print_connet_list(node2service[38]->connect_head);
-
-    //for unassigned service  get average cost
-    //for assigned service if the small than min average cost
-    //for assigned demand if average cost too big  redistribute
-        //in this process we have to
-        //fix connect reovke_connect caculate tmp bandwidth caculate bandwidth
-        //if there is a tmp connect fix -> update tmp bandwidth
-        //if there is a connect fix -> update bandwidth
     my_process->find_scheme();
-
-
-
-    //out
-
-    string out_string=my_process->scheme2string();
-    for(unsigned int i=0; i<demand_cnt; i++)
-    {
-        Demand* demand=demand_vector[i];
-        if(demand->test_demand != 0){
-            valid_scheme=false;
-            cout<<demand->index<<" remain:"<<demand->test_demand<<endl;
-        }
-    }
-//    cout<<pre_fix_cnt<<" pre fix:";
-//    cout<<pre_fix_str<<endl;
-//    cout<<next_fix_cnt<<" next fix:";
-//    cout<<out_string<<endl;
-//    cout<<"cost: "<<cost_sum<<endl;
-//    cout<<"cost: "<<wast_cost<<endl;
-//    cout<<"max length"<<max_length<<endl;
-
-//    if(!valid_scheme)
-//    {
-//        cout<<endl<<"ERROR !!!"<<endl;
-//    }
-    string cnt_string=SSTR(pre_fix_cnt+next_fix_cnt);
-    cnt_string=cnt_string.append("\n");
-
-    out_string=pre_fix_str.append(out_string);
-    out_string=cnt_string.append(out_string);
-
-    write_result(out_string.c_str(), filename);
 }

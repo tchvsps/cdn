@@ -92,7 +92,10 @@ bool is_searched(search_node* leaf_node, unsigned int new_node_index){
     }
     return false;
 }
-void Demand::search_connect(unsigned int deepth, bool is_assigned)
+
+set<unsigned int> searched_service;
+
+void Demand::search_connect(unsigned int deepth)
 {
     queue<search_node*> search_queue;
 
@@ -104,11 +107,11 @@ void Demand::search_connect(unsigned int deepth, bool is_assigned)
 //    cout<<new_connect->to_string()<<endl;
     //add to service
     Service* service;
-    if(unassigned_service.find(new_connect->node_index)==unassigned_service.end())
+    if(searched_service.find(new_connect->node_index)==searched_service.end())
     {
         service=new Service(new_connect->node_index);
         node2service[new_connect->node_index]=service;
-        unassigned_service.insert(new_connect->node_index);
+        searched_service.insert(new_connect->node_index);
     }
     else{
         service=node2service[new_connect->node_index];
@@ -117,13 +120,8 @@ void Demand::search_connect(unsigned int deepth, bool is_assigned)
 
     new_connect_list=new connect_list(new_connect);
 
-    if(is_assigned){
-        waiting_connect_head=insert_connect(waiting_connect_head,new_connect_list);
-        service->demand_set.insert(new_connect->demand_index);
-    }else{
-        service->connect_head=insert_connect(service->connect_head,new_connect_list);
-        service->demand_set.insert(new_connect->demand_index);
-    }
+    service->connect_head=insert_connect(service->connect_head,new_connect_list);
+    service->demand_set.insert(new_connect->demand_index);
 
 
     //add to  demand
@@ -132,8 +130,6 @@ void Demand::search_connect(unsigned int deepth, bool is_assigned)
     demand->connect_head=insert_connect(demand->connect_head,new_connect_list);
 
     demand->service_set.insert(new_connect->node_index);
-
-
 
     while(!search_queue.empty()){
         struct search_node* search_node=search_queue.front();
@@ -163,11 +159,11 @@ void Demand::search_connect(unsigned int deepth, bool is_assigned)
 
                     //add to service
                     Service* service;
-                    if(unassigned_service.find(new_connect->node_index)==unassigned_service.end())
+                    if(searched_service.find(new_connect->node_index)==searched_service.end())
                     {
                         service=new Service(new_connect->node_index);
                         node2service[new_connect->node_index]=service;
-                        unassigned_service.insert(new_connect->node_index);
+                        searched_service.insert(new_connect->node_index);
                     }
                     else{
                         service=node2service[new_connect->node_index];
@@ -176,13 +172,8 @@ void Demand::search_connect(unsigned int deepth, bool is_assigned)
 
                     new_connect_list=new connect_list(new_connect);
 
-                    if(is_assigned){
-                        waiting_connect_head=insert_connect(waiting_connect_head,new_connect_list);
-                        service->demand_set.insert(new_connect->demand_index);
-                    }else{
-                        service->connect_head=insert_connect(service->connect_head,new_connect_list);
-                        service->demand_set.insert(new_connect->demand_index);
-                    }
+                    service->connect_head=insert_connect(service->connect_head,new_connect_list);
+                    service->demand_set.insert(new_connect->demand_index);
 
                     //add to  demand
                     new_connect_list=new connect_list(new_connect);
@@ -211,6 +202,16 @@ void Demand::search_connect(unsigned int deepth, bool is_assigned)
     }
 }
 
+
+unsigned int Demand::rand_service()
+{
+    set<unsigned int>::iterator servic_iter=service_set.begin();
+    unsigned int rad=random()%service_set.size();
+    for(unsigned int i=0; i<rad; i++){
+        servic_iter++;
+    }
+    return *servic_iter;
+}
 
 void Demand::print_connect(void)
 {

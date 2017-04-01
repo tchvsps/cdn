@@ -20,11 +20,13 @@ public:
     {};
 
     void print_demand(void);
-    void search_connect(unsigned int deepth,bool is_assigned);
+    void search_connect(unsigned int deepth);
     void print_connect(void);
+    unsigned int rand_service(void);
 
 public:
 	unsigned int index;
+	unsigned int service_cnt;
 	unsigned int attached_node;
 	unsigned int demand;
 	unsigned int tmp_demand;

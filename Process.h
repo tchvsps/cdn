@@ -3,7 +3,9 @@
 class Process{
 public:
 
-    Process(){};
+    Process():
+    finnal_connect_list(NULL)
+    {};
 
 	void init_graph(char * topo[], int line_num);
 	void pre_process(void);
@@ -15,6 +17,7 @@ public:
 	string scheme2string(void);
 
 public:
+    connect_list* finnal_connect_list;
 
 
 };

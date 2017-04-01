@@ -66,17 +66,9 @@ void Connect::fix_connect(void)
 
     if(demand_vector[demand_index]->demand == 0)
     {
-        assigned_demand.insert(demand_index);
+        assigned_demand.insert(demand_vector[demand_index]);
+        unassigned_demand.erase(unassigned_demand.find(demand_vector[demand_index]));
         demand_vector[demand_index]->assigned=true;
-
-        set<unsigned int>::iterator demand_iter;
-        for(demand_iter=unassigned_demand.begin(); demand_iter!=unassigned_demand.end(); ++demand_iter)
-        {
-            if(*demand_iter == demand_index)
-            {
-                unassigned_demand.erase(demand_iter);
-            }
-        }
     }
     //update the edge tmp_bandwidth
     struct search_node* stop_node;
@@ -141,52 +133,52 @@ string Connect::to_string(void)
 
 string Connect::to_string_f(void)
 {
-    demand_vector[demand_index]->test_demand-=best_connect_bandwidth;
-    if(demand_vector[demand_index]->test_demand < 0)
-    {
-        cout<<"ERROR CONNECT DEMAND"<<endl;
-        cout<<this->to_string();
-        cout<<endl;
-    }
-    string connect_string="\n";
-    struct search_node* stop_node;
-    struct search_node* start_node;
-
-    stop_node=leaf_node;
-    start_node=stop_node->parent;
-    while(start_node){
-        connect_string=connect_string.append(SSTR(stop_node->index));
-        connect_string=connect_string.append(" ");
-        stop_node->edge->test_edge_bandwidth-=best_connect_bandwidth;
-        stop_node->edge->wast_band+=best_connect_bandwidth;
-
-        unsigned int wast_bandwidth=min(stop_node->edge->wast_band,stop_node->edge->brother->wast_band);
-        if(wast_bandwidth)
-        {
-            wast_cost+=(stop_node->edge->length)*wast_bandwidth*2;
-            stop_node->edge->wast_band-=wast_bandwidth;
-            stop_node->edge->brother->wast_band-=wast_bandwidth;
-        }
-
-        if(stop_node->edge->test_edge_bandwidth<0)
-        {
-            valid_scheme=false;
-            cout<<"ERROR CONNECT EDGE"<<endl;
-            cout<<this->to_string()<<endl;
-            cout<<stop_node->edge->start_node<<"->"<<stop_node->edge->stop_node<<endl;
-            cout<<endl;
-        }
-
-        stop_node=start_node;
-        start_node=start_node->parent;
-    }
-    connect_string=connect_string.append(SSTR(stop_node->index));
-    connect_string=connect_string.append(" ");
-
-    connect_string=connect_string.append(SSTR(node_vector[stop_node->index]->attached_demand));
-    connect_string=connect_string.append(" ");
-
-    connect_string=connect_string.append(SSTR(best_connect_bandwidth));
-    return connect_string;
+//    demand_vector[demand_index]->test_demand-=best_connect_bandwidth;
+//    if(demand_vector[demand_index]->test_demand < 0)
+//    {
+//        cout<<"ERROR CONNECT DEMAND"<<endl;
+//        cout<<this->to_string();
+//        cout<<endl;
+//    }
+//    string connect_string="\n";
+//    struct search_node* stop_node;
+//    struct search_node* start_node;
+//
+//    stop_node=leaf_node;
+//    start_node=stop_node->parent;
+//    while(start_node){
+//        connect_string=connect_string.append(SSTR(stop_node->index));
+//        connect_string=connect_string.append(" ");
+//        stop_node->edge->test_edge_bandwidth-=best_connect_bandwidth;
+//        stop_node->edge->wast_band+=best_connect_bandwidth;
+//
+//        unsigned int wast_bandwidth=min(stop_node->edge->wast_band,stop_node->edge->brother->wast_band);
+//        if(wast_bandwidth)
+//        {
+//            wast_cost+=(stop_node->edge->length)*wast_bandwidth*2;
+//            stop_node->edge->wast_band-=wast_bandwidth;
+//            stop_node->edge->brother->wast_band-=wast_bandwidth;
+//        }
+//
+//        if(stop_node->edge->test_edge_bandwidth<0)
+//        {
+//            valid_scheme=false;
+//            cout<<"ERROR CONNECT EDGE"<<endl;
+//            cout<<this->to_string()<<endl;
+//            cout<<stop_node->edge->start_node<<"->"<<stop_node->edge->stop_node<<endl;
+//            cout<<endl;
+//        }
+//
+//        stop_node=start_node;
+//        start_node=start_node->parent;
+//    }
+//    connect_string=connect_string.append(SSTR(stop_node->index));
+//    connect_string=connect_string.append(" ");
+//
+//    connect_string=connect_string.append(SSTR(node_vector[stop_node->index]->attached_demand));
+//    connect_string=connect_string.append(" ");
+//
+//    connect_string=connect_string.append(SSTR(best_connect_bandwidth));
+//    return connect_string;
 }
 

@@ -4,7 +4,6 @@ class Service
 public:
     void add_connect(void);
     float get_average_cost(void);
-    void fix_service(void);
 
     void print_connect(void);
 
@@ -24,6 +23,9 @@ public:
 	unsigned int best_deepth;
 	unsigned int bandwidth_sum;
 	string to_string(void);
+
+	void update_service_cnt(void);
+	void init_connect(void);
 };
 
 struct node{

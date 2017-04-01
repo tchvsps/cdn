@@ -75,10 +75,11 @@ extern unsigned int deploy_cost;
 extern unsigned int cost_sum;
 extern unsigned int wast_cost;
 
-extern set<unsigned int> assigned_service;
-extern set<unsigned int> unassigned_service;
-extern set<unsigned int> assigned_demand;
-extern set<unsigned int> unassigned_demand;
+extern set<Service*> assigned_service;
+extern set<Demand*> assigned_demand;
+extern set<Demand*> unassigned_demand;
+
+extern map<unsigned int, Service*> node2service;
 
 extern vector<Demand*> demand_vector;
 extern vector<Service*> service_vector;
