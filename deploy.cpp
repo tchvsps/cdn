@@ -35,34 +35,26 @@ void deploy_server(char * topo[MAX_EDGE_NUM], int line_num,char * filename)
     init_graph(topo,line_num);
 
     unsigned int last_service_size=0;
-    service_set.clear();
-    for(unsigned int i=0; i<demand_cnt*2; i++)
+    while(true)
     {
-        service_set.insert(rand()%node_cnt);
-    }
-    init_service(service_set,last_service_size);
-    last_service_size=service_set.size();
-    MCMF();
+        service_set.clear();
+        for(unsigned int i=0; i<demand_cnt*2; i++)
+        {
+            service_set.insert(rand()%node_cnt);
+        }
+        init_service(service_set,last_service_size);
+        last_service_size=service_set.size();
 
-    service_set.clear();
-    for(unsigned int i=0; i<demand_cnt*2; i++)
-    {
-        service_set.insert(rand()%node_cnt);
-    }
-    init_service(service_set,last_service_size);
-    last_service_size=service_set.size();
+        int cost=MCMF();
+        if(cost>0)
+        {
+            cout<<"valid:"<<cost<<endl;
+            break;
+        }
 
-    MCMF();
-
-    cout<<"service: ";
-    set<unsigned int>::iterator set_iter;
-    for(set_iter=service_set.begin(); set_iter!=service_set.end();++set_iter)
-    {
-        cout<<" "<<*set_iter;
     }
-    cout<<endl;
 
     string out_string=flow2string();
-    cout<<endl<<out_string<<endl;
+//    cout<<endl<<out_string<<endl;
     write_result(out_string.c_str(), filename);
 }

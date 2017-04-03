@@ -124,12 +124,12 @@ bool SPFA(int s,int t,int &flow,int &cost)//寻找最小费用的增广路，使
         d[i]=INF;
     memset(inq,0,sizeof(inq));
     d[s]=0;inq[s]=1;p[s]=0;a[s]=INF;
-    queue<int> Q;
-    Q.push(s);
+    deque<int> Q;
+    Q.push_back(s);
     while(!Q.empty())
     {
         int u=Q.front();
-        Q.pop();
+        Q.pop_front();
         inq[u]--;
         for(int i=0;i<G[u].size();i++)
         {
@@ -142,7 +142,17 @@ bool SPFA(int s,int t,int &flow,int &cost)//寻找最小费用的增广路，使
                 if(!inq[e.to])
                 {
                     inq[e.to]++;
-                    Q.push(e.to);
+
+                    if (!Q.empty())
+                    {
+                        if(d[e.to]>d[Q.front()])
+                            Q.push_back(e.to);
+                        else
+                            Q.push_front(e.to);
+                    }
+                    else
+                        Q.push_back(e.to);
+
                 }
             }
         }
@@ -228,6 +238,7 @@ string flow2string(void)
         route_string=route_string.append(" ");
         route_string=route_string.append(SSTR(route_flow));
         route_cnt++;
+//        cout<<route_string<<endl;
         out_string.append(route_string);
     }
     string cnt_string=SSTR(route_cnt);
