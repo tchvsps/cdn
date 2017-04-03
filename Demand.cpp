@@ -121,6 +121,10 @@ void Demand::search_connect(unsigned int deepth)
     new_connect_list=new connect_list(new_connect);
 
     service->connect_head=insert_connect(service->connect_head,new_connect_list);
+
+//    if(new_connect->length<5){
+//        service->demand_set.insert(new_connect->demand_index);
+//    }
     service->demand_set.insert(new_connect->demand_index);
 
 
@@ -129,7 +133,10 @@ void Demand::search_connect(unsigned int deepth)
     Demand* demand=demand_vector[new_connect->demand_index];
     demand->connect_head=insert_connect(demand->connect_head,new_connect_list);
 
-    demand->service_set.insert(new_connect->node_index);
+    if(new_connect->length<5)
+    {
+        demand->service_set.insert(new_connect->node_index);
+    }
 
     while(!search_queue.empty()){
         struct search_node* search_node=search_queue.front();
@@ -173,14 +180,20 @@ void Demand::search_connect(unsigned int deepth)
                     new_connect_list=new connect_list(new_connect);
 
                     service->connect_head=insert_connect(service->connect_head,new_connect_list);
-                    service->demand_set.insert(new_connect->demand_index);
 
+//                    if(new_connect->length<5){
+//                        service->demand_set.insert(new_connect->demand_index);
+//                    }
+                    service->demand_set.insert(new_connect->demand_index);
                     //add to  demand
                     new_connect_list=new connect_list(new_connect);
                     Demand* demand=demand_vector[new_connect->demand_index];
                     demand->connect_head=insert_connect(demand->connect_head,new_connect_list);
 
-                    demand->service_set.insert(new_connect->node_index);
+                    if(new_connect->length<2)
+                    {
+                        demand->service_set.insert(new_connect->node_index);
+                    }
 
                     //add to edge
                     struct search_node* start_node;

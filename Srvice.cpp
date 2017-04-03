@@ -37,7 +37,50 @@ void Service::update_service_cnt(void)
 
 void Service::init_connect(void)
 {
-    for()
+    connect_list* list_head;
+    connect_list* list_node;
+    list_head=connect_head;
+    while(list_head)
+    {
+        list_node=list_head;
+        while(list_node)
+        {
+            list_node->connect->connect_bandwidth=list_node->connect->tmp_connect_bandwidth;
+            list_node->connect->edge_tmp_init();
+            list_node=list_node->next;
+        }
+
+        list_head=list_head->bigger;
+    }
+}
+
+bool Service::fix_connect(unsigned int deep)
+{
+    connect_list* list_head=connect_head;
+    connect_list* list_node;
+    bool change_flg=false;
+
+    while(list_head)
+    {
+        if(list_head->connect->length>deep)
+            break;
+        if(list_head->connect->length==deep)
+        {
+            list_node=list_head;
+            while(list_node)
+            {
+                Connect* connect=list_node->connect;
+                connect->best_connect_bandwidth=min(connect->connect_bandwidth,demand_vector[connect->demand_index]->demand);
+                change_flg=true;
+                cout<<"fix connect:"<<connect->to_string()<<endl;
+                connect->fix_connect();
+                list_node=list_node->next;
+            }
+            break;
+        }
+        list_head=list_head->bigger;
+    }
+    return change_flg;
 }
 
 
@@ -51,6 +94,7 @@ void Service::print_connect(void)
 string Service::to_string(void)
 {
     string service_string="";
+
 //    connect_list* list_head;
 //    connect_list* list_node;
 //    cost_sum+=deploy_cost;

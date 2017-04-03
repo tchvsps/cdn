@@ -131,52 +131,105 @@ void Process::search_connect(void)
 
 void Process::find_scheme(void)
 {
-    //init deamd
-    unassigned_demand.clear();
-    assigned_demand.clear();
-    for(unsigned int i=0; i<demand_cnt; i++)
+    unsigned int try_cnt=0;
+    unsigned int good_cnt=0;
+    while(true)
     {
-        Demand* demand=demand_vector[i];
-        demand->demand=demand->test_demand;
-        demand->service_cnt=0;
-        unassigned_demand.insert(demand);
+        try_cnt++;
+        if(try_cnt>10) break;
+        //init deamd
+        unassigned_demand.clear();
+        assigned_demand.clear();
+        for(unsigned int i=0; i<demand_cnt; i++)
+        {
+            Demand* demand=demand_vector[i];
+            demand->demand=demand->tmp_demand;
+            demand->service_cnt=0;
+            unassigned_demand.insert(demand);
+        }
+
+        assigned_service.clear();
+        set<unsigned int>::iterator service_index_iter;
+
+        cout<<"create service set"<<endl;
+        for(service_index_iter=fix_service_set.begin(); service_index_iter!=fix_service_set.end(); service_index_iter++)
+        {
+            Service* service=node2service[*service_index_iter];
+            assigned_service.insert(service);
+            service->update_service_cnt();
+            cout<<"add "<<service->index<<endl;
+        }
+
+        //init service
+        for(unsigned int i=0; i<demand_cnt; i++)
+        {
+            Demand* demand=demand_vector[i];
+//            if(demand->service_cnt) {continue;}
+
+            Service* service=node2service[demand->rand_service()];
+            assigned_service.insert(service);
+            service->update_service_cnt();
+            cout<<"add "<<service->index<<endl;
+
+//            service=node2service[demand->rand_service()];
+//            assigned_service.insert(service);
+//            service->update_service_cnt();
+//            cout<<"add "<<service->index<<endl;
+//
+//            service=node2service[demand->rand_service()];
+//            assigned_service.insert(service);
+//            service->update_service_cnt();
+//            cout<<"add "<<service->index<<endl;
+        }
+
+        //init connect list
+        //init edge
+        set<Service*>::iterator service_iter;
+        for(service_iter=assigned_service.begin();service_iter!=assigned_service.end();service_iter++)
+        {
+            Service* service=*service_iter;
+            service->init_connect();
+//            service->print_connect();
+        }
+
+        unsigned int deepth=0;
+
+
+        while(true)
+        {
+            bool end_flg=true;
+            cout<<"deepth:"<<deepth<<endl;
+            for(service_iter=assigned_service.begin(); service_iter!=assigned_service.end(); service_iter++)
+            {
+                Service* service=*service_iter;
+
+                if(service->fix_connect(deepth))
+                {
+                    end_flg=false;
+                }
+            }
+
+            if(unassigned_demand.empty())
+            {
+                cout<<endl<<endl<<endl<<"  GOOD JOB !!!!"<<endl<<endl;
+                cout<<"find one cost:"<<endl;
+                good_cnt++;
+                break;
+            }
+
+            if(end_flg)
+            {
+                demand_vector[0]->print_demand();
+                break;
+            }
+            deepth++;
+        }
+
+
     }
 
-    assigned_service.clear();
-    set<unsigned int>::iterator service_index_iter;
-    for(service_index_iter=fix_service_set.begin(); service_index_iter!=fix_service_set.end(); service_index_iter++)
-    {
-        Service* service=node2service[*service_index_iter];
-        assigned_service.insert(service);
-        service->update_service_cnt();
-    }
+    cout<<"good rate:"<<(float)good_cnt/(try_cnt-1)<<endl;
 
-    //init service
-    for(unsigned int i=0; i<demand_cnt; i++)
-    {
-        Demand* demand=demand_vector[i];
-        if(demand->service_cnt) {continue;}
-
-        Service* service=node2service[demand->rand_service()];
-        assigned_service.insert(service);
-        service->update_service_cnt();
-    }
-    //init connect list
-
-    set<Service*>::iterator service_iter;
-    for(service_iter=assigned_service.begin(),service_iter!=assigned_service.end();service_iter++)
-    {
-
-    }
-    //init edge
-
-
-    while(!unassigned_demand.empty())
-    {
-
-    }
-    cout<<endl<<endl<<endl<<"  GOOD JOB !!!!"<<endl<<endl;
-    cout<<"find one cost:"<<endl;
 }
 
 string Process::scheme2string(void)

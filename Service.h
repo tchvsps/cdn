@@ -26,6 +26,7 @@ public:
 
 	void update_service_cnt(void);
 	void init_connect(void);
+	bool fix_connect(unsigned int deepth);
 };
 
 struct node{

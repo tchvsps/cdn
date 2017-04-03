@@ -1,26 +1,5 @@
 #include"basic.h"
 
-void update_tmp_edge_bandwidth(struct edge* edge, int bandwidth)
-{
-
-//    cout<<edge->start_node<<"->"<<edge->stop_node<<endl;
-//    cout<<"    "<<edge->tmp_edge_bandwidth<<endl;
-    if(edge->tmp_edge_bandwidth-bandwidth>10000)
-    {
-        cout<<"ERROR"<<endl;
-    }
-
-    edge->tmp_edge_bandwidth-=bandwidth;
-//    cout<<"    "<<edge->tmp_edge_bandwidth<<endl;
-    Connect* connect;
-    for(unsigned int i=0; i<edge->connect_vector.size(); i++)
-    {
-        connect=edge->connect_vector[i];
-//        cout<<connect->to_string()<<endl;
-        connect->tmp_connect_bandwidth=min(connect->tmp_connect_bandwidth,edge->tmp_edge_bandwidth);
-
-    }
-}
 
 void update_edge_bandwidth(struct edge* edge, int bandwidth)
 {
@@ -30,45 +9,29 @@ void update_edge_bandwidth(struct edge* edge, int bandwidth)
         cout<<"ERROR"<<endl;
     }
 
-    edge->tmp_edge_bandwidth=edge->edge_bandwidth;
-
     Connect* connect;
     for(unsigned int i=0; i<edge->connect_vector.size(); i++)
     {
         connect=edge->connect_vector[i];
         connect->connect_bandwidth=min(connect->connect_bandwidth,edge->edge_bandwidth);
-        connect->tmp_connect_bandwidth=connect->connect_bandwidth;
     }
 }
 
-void Connect::tmp_fix_connect(void)
-{
-    demand_vector[demand_index]->tmp_demand-=best_connect_bandwidth;
-
-    //update the edge tmp_bandwidth
-    struct search_node* stop_node;
-    struct search_node* start_node;
-
-    stop_node=leaf_node;
-    start_node=stop_node->parent;
-    while(start_node){
-        update_tmp_edge_bandwidth(stop_node->edge,best_connect_bandwidth);
-
-        stop_node=start_node;
-        start_node=start_node->parent;
-    }
-}
 
 void Connect::fix_connect(void)
 {
+//    cout<<"best bandwidth:"<<best_connect_bandwidth<<endl;
     demand_vector[demand_index]->demand-=best_connect_bandwidth;
-    demand_vector[demand_index]->tmp_demand=demand_vector[demand_index]->demand;
 
     if(demand_vector[demand_index]->demand == 0)
     {
         assigned_demand.insert(demand_vector[demand_index]);
-        unassigned_demand.erase(unassigned_demand.find(demand_vector[demand_index]));
-        demand_vector[demand_index]->assigned=true;
+        if(best_connect_bandwidth)
+        {
+            unassigned_demand.erase(unassigned_demand.find(demand_vector[demand_index]));
+            demand_vector[demand_index]->assigned=true;
+        }
+
     }
     //update the edge tmp_bandwidth
     struct search_node* stop_node;
@@ -94,7 +57,7 @@ void Connect::edge_tmp_init(void)
     stop_node=leaf_node;
     start_node=stop_node->parent;
     while(start_node){
-        stop_node->edge->tmp_edge_bandwidth=stop_node->edge->edge_bandwidth;
+        stop_node->edge->edge_bandwidth=stop_node->edge->tmp_edge_bandwidth;
 
         stop_node=start_node;
         start_node=start_node->parent;
@@ -127,7 +90,7 @@ string Connect::to_string(void)
 
 //    connect_string=connect_string.append(SSTR(bandwidth));
     connect_string=connect_string.append(" ");
-    connect_string=connect_string.append(SSTR(tmp_connect_bandwidth));
+    connect_string=connect_string.append(SSTR(best_connect_bandwidth));
     return connect_string;
 }
 
