@@ -91,6 +91,11 @@ void init_graph(char * topo[], int line_num)
 
 void init_service(set<unsigned int> service_set, unsigned int last_service_size)
 {
+    for(unsigned int i=0; i<last_service_size; i++)
+    {
+        deleteedge();
+    }
+
     edges.clear();
     edges.assign(origal_edges.begin(),origal_edges.end());
 
