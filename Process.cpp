@@ -53,20 +53,18 @@ void init(int node_cnt)//初始化
 void addedge(int from,int to,int cap,int cost)//加边
 {
     edges.push_back(Edge(from,to,cap,0,cost));
-    edges.push_back(Edge(to,from,0,0,-cost));
+    // edges.push_back(Edge(to,from,0,0,-cost));
     int m=edges.size();
-    G[from].push_back(m-2);
-    G[to].push_back(m-1);
+    G[from].push_back(m-1);
+    // G[to].push_back(m-1);
 }
 
 void deleteedge(void)
 {
-    unsigned int from=edges[edges.size()-2].from;
-    unsigned int to=edges[edges.size()-2].to;
+    unsigned int from=edges[edges.size()-1].from;
     edges.pop_back();
-    edges.pop_back();
+    // edges.pop_back();
     G[from].pop_back();
-    G[to].pop_back();
 }
 
 void init_graph(char * topo[], int line_num)
@@ -104,8 +102,22 @@ void init_service(set<unsigned int> service_set, unsigned int last_service_size)
         deleteedge();
     }
 
-    for(unsigned int i=0; i<edges.size();i++)
+    for(unsigned int i=0; i<edge_cnt*2;i=i+2)
     {
+        edges[i].flow=0;
+        edges[i+1].flow=0;
+
+        if(edges[i].cost < 0) {
+            edges[i].cost=-edges[i].cost;
+            edges[i].cap=edges[i^1].cap;
+        }else if(edges[i^1].cost < 0)
+        {
+            edges[i^1].cost=-edges[i^1].cost;
+            edges[i^1].cap=edges[i].cap;
+        }
+    }
+
+    for(unsigned int i=edge_cnt*2; i<edges.size(); i++){
         edges[i].flow=0;
     }
 
@@ -163,8 +175,21 @@ bool SPFA(int s,int t,int &flow,int &cost)//寻找最小费用的增广路，使
     int u=t;
     while(u!=s)//更新正向边和反向边
     {
-        edges[p[u]].flow+=a[t];
-        edges[p[u]^1].flow-=a[t];
+        if(p[u] < edge_cnt*2){
+            if(edges[p[u]].cap==edges[p[u]^1].cap)
+            {
+                edges[p[u]^1].cost=-edges[p[u]^1].cost;
+                edges[p[u]^1].cap=0;
+            }
+            edges[p[u]].flow+=a[t];
+            edges[p[u]^1].flow-=a[t];
+            if(edges[p[u]].flow==0){
+                edges[p[u]].cost=-edges[p[u]].cost;
+                edges[p[u]].cap=edges[p[u]^1].cap;
+            }
+        }else{
+            edges[p[u]].flow+=a[t];
+        }
         u=edges[p[u]].from;
     }
     return true;
