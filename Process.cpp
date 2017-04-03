@@ -1,251 +1,242 @@
-#include"basic.h"
+#include<iostream>
+#include<algorithm>
+#include<string>
+#include<sstream>
+#include<set>
+#include<vector>
+#include<stack>
+#include<map>
+#include<queue>
+#include<deque>
+#include<cstdlib>
+#include<cstdio>
+#include<cstring>
+#include<cmath>
+#include<ctime>
+#include<functional>
+using namespace std;
 
-unsigned int node_cnt,demand_cnt,edge_cnt,deploy_cost;
-unsigned int cost_sum=0;
-bool valid_scheme=true;
-unsigned int predef_deep=0;
+#define SSTR( x ) static_cast< std::ostringstream & >( \
+        ( std::ostringstream() << std::dec << x ) ).str()
 
-set<unsigned int> fix_service_set;
-map<unsigned int, Service*> node2service;
+unsigned int node_cnt,demand_cnt,edge_cnt,deploy_cost,demand_sum;
+map<unsigned int,unsigned int> node2demand;
+extern set<unsigned int> service_set;
+extern set<unsigned int> best_service_set;
 
-set<Service*> assigned_service;
-set<Demand*> assigned_demand;
-set<Demand*> unassigned_demand;
+#define N 2000
+#define INF 100000000
 
-vector<Demand*> demand_vector;
-vector<Service*> service_vector;
-vector<struct node*> node_vector;
+struct Edge
+{
+    int from,to,cap,flow,cost;
+    Edge(int u,int v,int ca,int f,int co):from(u),to(v),cap(ca),flow(f),cost(co){};
+};
 
-connect_list* waiting_connect_head;
 
-void Process::init_graph(char * topo[], int line_num)
+int n,m,s,t;
+vector<Edge> edges;
+vector<int> G[N];
+int inq[N];//是否在队列中
+int d[N];//距离
+int p[N];//上一条弧
+int a[N];//可改进量
+
+void init(int node_cnt)//初始化
+{
+    n=node_cnt;
+    for(int i=0;i<n;i++)
+        G[i].clear();
+    edges.clear();
+}
+
+void addedge(int from,int to,int cap,int cost)//加边
+{
+    edges.push_back(Edge(from,to,cap,0,cost));
+    edges.push_back(Edge(to,from,0,0,-cost));
+    int m=edges.size();
+    G[from].push_back(m-2);
+    G[to].push_back(m-1);
+}
+
+void deleteedge(void)
+{
+    unsigned int from=edges[edges.size()-2].from;
+    unsigned int to=edges[edges.size()-2].to;
+    edges.pop_back();
+    edges.pop_back();
+    G[from].pop_back();
+    G[to].pop_back();
+}
+
+void init_graph(char * topo[], int line_num)
 {
     sscanf(topo[0],"%d %d %d",&node_cnt,&edge_cnt,&demand_cnt);
     sscanf(topo[2],"%d",&deploy_cost);
 
-    for(unsigned int i=0; i<node_cnt; i++)
-    {
-        node_vector.push_back(new struct node(i));
-    }
+    init(node_cnt+3);
+
+
     unsigned int start_node,stop_node,bandwidth,length;
-    struct edge *new_edge_one,*new_edge_two,*head;
+
     for(unsigned int i=4; i<4+edge_cnt; i++)
     {
         sscanf(topo[i],"%d %d %d %d",&start_node,&stop_node,&bandwidth,&length);
-        new_edge_one=new edge(length,start_node,stop_node,bandwidth);
-        head=node_vector[start_node]->edge_head;
-        node_vector[start_node]->edge_head=insert_edge(head,new_edge_one);
-
-        new_edge_two=new edge(length,stop_node,start_node,bandwidth);
-        head=node_vector[stop_node]->edge_head;
-        node_vector[stop_node]->edge_head=insert_edge(head,new_edge_two);
-        new_edge_two->brother=new_edge_one;
-        new_edge_one->brother=new_edge_two;
+        addedge(start_node,stop_node,bandwidth,length);
+        addedge(stop_node,start_node,bandwidth,length);
     }
 
-    unsigned int demand_index,index,demand;
+    demand_sum=0;
+    unsigned int demand_index,service_index,demand;
     for(unsigned int i=5+edge_cnt; i<5+edge_cnt+demand_cnt; i++)
     {
-        sscanf(topo[i],"%d %d %d",&demand_index,&index,&demand);
-        demand_vector.push_back(new Demand(demand_index,index,demand));
-
-        node_vector[index]->attached_demand=demand_index;
+        sscanf(topo[i],"%d %d %d",&demand_index,&service_index,&demand);
+        demand_sum+=demand;
+        addedge(node_cnt,service_index,demand,0);
+        node2demand[service_index]=demand_index;
     }
 }
 
-inline edge* insert_edge(edge* head, edge* new_node)
+void init_service(set<unsigned int> service_set, unsigned int last_service_size)
 {
-    new_node->next=NULL;
+    for(unsigned int i=0; i<last_service_size; i++)
+    {
+        deleteedge();
+    }
 
-    if(!head)
+    for(unsigned int i=0; i<edges.size();i++)
     {
-        head=new_node;
+        edges[i].flow=0;
     }
-    else if(head->length >= new_node->length)
-    {
-        new_node->next=head;
-        head=new_node;
-    }
-    else
-    {
-        edge* parent_node=head;
 
-        while(parent_node->next)
-        {
-            if(parent_node->next->length >= new_node->length)
-            {
-                new_node->next=parent_node->next;
-                break;
-            }
-            else
-            {
-                parent_node=parent_node->next;
-            }
-        }
-        parent_node->next=new_node;
+    set<unsigned int>::iterator service_iter;
+    for(service_iter=service_set.begin();service_iter!=service_set.end();++service_iter)
+    {
+//        cout<<*service_iter<<" ";
+        addedge(*service_iter,node_cnt+1,INF,0);
     }
-    return head;
+//    cout<<endl;
 }
 
-void Process::pre_process(void)
+bool SPFA(int s,int t,int &flow,int &cost)//寻找最小费用的增广路，使用引用同时修改原flow,cost
 {
-    for(unsigned int i=0; i<demand_cnt; i++)
+    for(int i=0;i<n;i++)
+        d[i]=INF;
+    memset(inq,0,sizeof(inq));
+    d[s]=0;inq[s]=1;p[s]=0;a[s]=INF;
+    queue<int> Q;
+    Q.push(s);
+    while(!Q.empty())
     {
-        Demand* demand=demand_vector[i];
-        struct node* node=node_vector[demand->attached_node];
-        unsigned int out_bandwidth_sum=0;
-        unsigned int out_cost_sum=0;
-        unsigned int now_bandwidth;
-        edge* now_edge=node->edge_head;
-        while(now_edge)
+        int u=Q.front();
+        Q.pop();
+        inq[u]--;
+        for(int i=0;i<G[u].size();i++)
         {
-            now_bandwidth=now_edge->edge_bandwidth;
-            if(now_bandwidth+out_bandwidth_sum >= demand->demand)
+            Edge& e=edges[G[u][i]];
+            if(e.cap>e.flow && d[e.to]>d[u]+e.cost)
             {
-                out_cost_sum+=(now_edge->length)*(demand->demand-out_bandwidth_sum);
-                out_bandwidth_sum=demand->demand;
-                break;
-            }
-            else
-            {
-                out_bandwidth_sum+=now_bandwidth;
-                out_cost_sum+=now_bandwidth*now_edge->length;
-            }
-            now_edge=now_edge->next;
-        }
-        if(out_bandwidth_sum < demand->demand || out_cost_sum>deploy_cost)
-        {
-            fix_service_set.insert(demand->attached_node);
-        }
-    }
-}
-
-void Process::search_connect(void)
-{
-    for(unsigned int i=0; i<demand_cnt; i++)
-    {
-        Demand* demand=demand_vector[i];
-        demand->search_connect(predef_deep);
-    }
-}
-
-void Process::find_scheme(void)
-{
-    unsigned int try_cnt=0;
-    unsigned int good_cnt=0;
-    while(true)
-    {
-        try_cnt++;
-        if(try_cnt>10) break;
-        //init deamd
-        unassigned_demand.clear();
-        assigned_demand.clear();
-        for(unsigned int i=0; i<demand_cnt; i++)
-        {
-            Demand* demand=demand_vector[i];
-            demand->demand=demand->tmp_demand;
-            demand->service_cnt=0;
-            unassigned_demand.insert(demand);
-        }
-
-        assigned_service.clear();
-        set<unsigned int>::iterator service_index_iter;
-
-        cout<<"create service set"<<endl;
-        for(service_index_iter=fix_service_set.begin(); service_index_iter!=fix_service_set.end(); service_index_iter++)
-        {
-            Service* service=node2service[*service_index_iter];
-            assigned_service.insert(service);
-            service->update_service_cnt();
-            cout<<"add "<<service->index<<endl;
-        }
-
-        //init service
-        for(unsigned int i=0; i<demand_cnt; i++)
-        {
-            Demand* demand=demand_vector[i];
-//            if(demand->service_cnt) {continue;}
-
-            Service* service=node2service[demand->rand_service()];
-            assigned_service.insert(service);
-            service->update_service_cnt();
-            cout<<"add "<<service->index<<endl;
-
-//            service=node2service[demand->rand_service()];
-//            assigned_service.insert(service);
-//            service->update_service_cnt();
-//            cout<<"add "<<service->index<<endl;
-//
-//            service=node2service[demand->rand_service()];
-//            assigned_service.insert(service);
-//            service->update_service_cnt();
-//            cout<<"add "<<service->index<<endl;
-        }
-
-        //init connect list
-        //init edge
-        set<Service*>::iterator service_iter;
-        for(service_iter=assigned_service.begin();service_iter!=assigned_service.end();service_iter++)
-        {
-            Service* service=*service_iter;
-            service->init_connect();
-//            service->print_connect();
-        }
-
-        unsigned int deepth=0;
-
-
-        while(true)
-        {
-            bool end_flg=true;
-            cout<<"deepth:"<<deepth<<endl;
-            for(service_iter=assigned_service.begin(); service_iter!=assigned_service.end(); service_iter++)
-            {
-                Service* service=*service_iter;
-
-                if(service->fix_connect(deepth))
+                d[e.to]=d[u]+e.cost;
+                p[e.to]=G[u][i];
+                a[e.to]=min(a[u],e.cap-e.flow);
+                if(!inq[e.to])
                 {
-                    end_flg=false;
+                    inq[e.to]++;
+                    Q.push(e.to);
                 }
             }
+        }
+    }
+    if(d[t]==INF) return false;//汇点不可达则退出
+    flow+=a[t];
+    cost+=d[t]*a[t];
+    int u=t;
+    while(u!=s)//更新正向边和反向边
+    {
+        edges[p[u]].flow+=a[t];
+        edges[p[u]^1].flow-=a[t];
+        u=edges[p[u]].from;
+    }
+    return true;
+}
 
-            if(unassigned_demand.empty())
-            {
-                cout<<endl<<endl<<endl<<"  GOOD JOB !!!!"<<endl<<endl;
-                cout<<"find one cost:"<<endl;
-                good_cnt++;
-                break;
-            }
+int MincotMaxflow(int s,int t)
+{
+    int flow=0,cost=0;
+    while(SPFA(s,t,flow,cost)){};
+    cout<<flow<<":"<<cost<<endl;
+    if(flow==demand_sum){
+        cost+=deploy_cost*service_set.size();
+        return cost;
+    }else{
+        cout<<"INVALID!"<<endl;
+        return -1;
+    }
+}
 
-            if(end_flg)
+int MCMF(void)
+{
+    return MincotMaxflow(node_cnt,node_cnt+1);
+}
+
+string flow2string(void)
+{
+    int remain_deman=demand_sum;
+
+    string out_string="";
+    string route_string="";
+    unsigned int route_cnt;
+
+    stack<Edge*> route;
+    int route_flow;
+
+    unsigned int cur_node;
+    Edge* e;
+
+    route_cnt=0;
+    while(remain_deman){
+        route_flow=INF;
+        cur_node=node_cnt;
+        route_string="\n";
+        while(cur_node!=node_cnt+1){
+            //find a e
+            for(unsigned int i=0; i<G[cur_node].size(); i++)
             {
-                demand_vector[0]->print_demand();
-                break;
+                e=&edges[G[cur_node][i]];
+                if(e->cost>=0 && e->flow>0){break;}
             }
-            deepth++;
+            //push e
+            route.push(e);
+            cur_node=e->to;
+            route_flow=min(route_flow,e->flow);
+            //update cur_node
         }
 
 
+        remain_deman-=route_flow;
+        //find a route
+        route.pop();
+        while(!route.empty())
+        {
+            e=route.top();
+            route.pop();
+            route_string=route_string.append(SSTR(e->to));
+            route_string=route_string.append(" ");
+            e->flow-=route_flow;
+        }
+        route_string=route_string.append(SSTR(node2demand[e->to]));
+        route_string=route_string.append(" ");
+        route_string=route_string.append(SSTR(route_flow));
+        route_cnt++;
+        out_string.append(route_string);
     }
-
-    cout<<"good rate:"<<(float)good_cnt/(try_cnt-1)<<endl;
-
+    string cnt_string=SSTR(route_cnt);
+    cnt_string=cnt_string.append("\n");
+    out_string=cnt_string.append(out_string);
+    return out_string;
 }
 
-string Process::scheme2string(void)
-{
-//    string out_string="";
-//
-//    set<unsigned int>::iterator service_iter;
-//    for(service_iter=assigned_service.begin(); service_iter!=assigned_service.end(); service_iter++)
-//    {
-//
-//        Service* service=node2service[*service_iter];
-////        print_connet_list(service->fix_connect_head);
-////        cout<<endl<<endl<<service->to_string()<<endl;
-//        out_string=out_string.append(service->to_string());
-//
-//    }
-//    return out_string;
-}
+
+
+
 

@@ -1,28 +1,68 @@
 #include "deploy.h"
 #include <stdio.h>
-#include"basic.h"
+
+#include<iostream>
+#include<algorithm>
+#include<string>
+#include<sstream>
+#include<set>
+#include<vector>
+#include<stack>
+#include<map>
+#include<queue>
+#include<deque>
+#include<cstdlib>
+#include<cstdio>
+#include<cstring>
+#include<cmath>
+#include<ctime>
+#include<functional>
+using namespace std;
 
 //你要完成的功能总入口
+int MCMF(void);
+void init_graph(char * topo[], int line_num);
+void init_service(set<unsigned int> service_set, unsigned int last_service_size);
+
+extern unsigned int node_cnt,demand_cnt,edge_cnt,deploy_cost,demand_sum;
+set<unsigned int> service_set;
+set<unsigned int> best_service_set;
+string flow2string(void);
+
 void deploy_server(char * topo[MAX_EDGE_NUM], int line_num,char * filename)
 {
-
-	// 需要输出的内容
-	// char * topo_file = (char *)"17\n\n0 8 0 20\n21 8 0 20\n9 11 1 13\n21 22 2 20\n23 22 2 8\n1 3 3 11\n24 3 3 17\n27 3 3 26\n24 3 3 10\n18 17 4 11\n1 19 5 26\n1 16 6 15\n15 13 7 13\n4 5 8 18\n2 25 9 15\n0 7 10 10\n23 24 11 23";
-
-	// 直接调用输出文件的方法输出到指定文件中(ps请注意格式的正确性，如果有解，第一行只有一个数据；第二行为空；第三行开始才是具体的数据，数据之间用一个空格分隔开)
-
     srand(0);
+    init_graph(topo,line_num);
 
-    Process* my_process=new Process();
+    unsigned int last_service_size=0;
+    service_set.clear();
+    for(unsigned int i=0; i<demand_cnt*2; i++)
+    {
+        service_set.insert(rand()%node_cnt);
+    }
+    init_service(service_set,last_service_size);
+    last_service_size=service_set.size();
+    MCMF();
 
-    //get data from topo
-    my_process->init_graph(topo,line_num);
+    service_set.clear();
+    for(unsigned int i=0; i<demand_cnt*2; i++)
+    {
+        service_set.insert(rand()%node_cnt);
+    }
+    init_service(service_set,last_service_size);
+    last_service_size=service_set.size();
 
-    //fix the must
-    my_process->pre_process();
+    MCMF();
 
-    predef_deep=7;
-    my_process->search_connect();
+    cout<<"service: ";
+    set<unsigned int>::iterator set_iter;
+    for(set_iter=service_set.begin(); set_iter!=service_set.end();++set_iter)
+    {
+        cout<<" "<<*set_iter;
+    }
+    cout<<endl;
 
-    my_process->find_scheme();
+    string out_string=flow2string();
+    cout<<endl<<out_string<<endl;
+    write_result(out_string.c_str(), filename);
 }
