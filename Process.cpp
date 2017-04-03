@@ -35,6 +35,7 @@ struct Edge
 
 
 int n,m,s,t;
+vector<Edge> origal_edges;
 vector<Edge> edges;
 vector<int> G[N];
 int inq[N];//是否在队列中
@@ -57,14 +58,6 @@ void addedge(int from,int to,int cap,int cost)//加边
     int m=edges.size();
     G[from].push_back(m-1);
     // G[to].push_back(m-1);
-}
-
-void deleteedge(void)
-{
-    unsigned int from=edges[edges.size()-1].from;
-    edges.pop_back();
-    // edges.pop_back();
-    G[from].pop_back();
 }
 
 void init_graph(char * topo[], int line_num)
@@ -93,41 +86,19 @@ void init_graph(char * topo[], int line_num)
         addedge(node_cnt,service_index,demand,0);
         node2demand[service_index]=demand_index;
     }
+    origal_edges.assign(edges.begin(), edges.end());
 }
 
 void init_service(set<unsigned int> service_set, unsigned int last_service_size)
 {
-    for(unsigned int i=0; i<last_service_size; i++)
-    {
-        deleteedge();
-    }
-
-    for(unsigned int i=0; i<edge_cnt*2;i=i+2)
-    {
-        edges[i].flow=0;
-        edges[i+1].flow=0;
-
-        if(edges[i].cost < 0) {
-            edges[i].cost=-edges[i].cost;
-            edges[i].cap=edges[i^1].cap;
-        }else if(edges[i^1].cost < 0)
-        {
-            edges[i^1].cost=-edges[i^1].cost;
-            edges[i^1].cap=edges[i].cap;
-        }
-    }
-
-    for(unsigned int i=edge_cnt*2; i<edges.size(); i++){
-        edges[i].flow=0;
-    }
+    edges.clear();
+    edges.assign(origal_edges.begin(),origal_edges.end());
 
     set<unsigned int>::iterator service_iter;
     for(service_iter=service_set.begin();service_iter!=service_set.end();++service_iter)
     {
-//        cout<<*service_iter<<" ";
         addedge(*service_iter,node_cnt+1,INF,0);
     }
-//    cout<<endl;
 }
 
 bool SPFA(int s,int t,int &flow,int &cost)//寻找最小费用的增广路，使用引用同时修改原flow,cost

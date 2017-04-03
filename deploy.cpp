@@ -47,13 +47,14 @@ void deploy_server(char * topo[MAX_EDGE_NUM], int line_num,char * filename)
         last_service_size=service_set.size();
 
         int cost=MCMF();
+        valid_cnt++;
+
         if(cost>0)
         {
             cout<<"valid:"<<cost<<endl;
-            valid_cnt++;
-            if(valid_cnt>10)
-                break;
         }
+        if(valid_cnt>0)
+            break;
 
     }
 
