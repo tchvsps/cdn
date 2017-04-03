@@ -123,11 +123,27 @@ bool SPFA(int s,int t,int &flow,int &cost)//寻找最小费用的增广路，使
     memset(inq,0,sizeof(inq));
     d[s]=0;inq[s]=1;p[s]=0;a[s]=INF;
     deque<int> Q;
+//    int que_sum=0;
+//    int ave_dis=0;
     Q.push_back(s);
+//    que_sum+=d[s];
+
     while(!Q.empty())
     {
+//        if(Q.size()>2){
+//            ave_dis=que_sum/Q.size();
+//            int tmp_n=Q.front();
+//            while(d[tmp_n]>ave_dis){
+//                Q.pop_front();
+//                Q.push_back(tmp_n);
+//                tmp_n=Q.front();
+//            }
+//        }
+
         int u=Q.front();
         Q.pop_front();
+//        que_sum-=d[u];
+
         inq[u]--;
         for(int i=0;i<G[u].size();i++)
         {
@@ -148,8 +164,10 @@ bool SPFA(int s,int t,int &flow,int &cost)//寻找最小费用的增广路，使
                         else
                             Q.push_front(e.to);
                     }
-                    else
+                    else{
                         Q.push_back(e.to);
+                    }
+//                    que_sum+=d[e.to];
                 }
             }
         }

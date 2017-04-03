@@ -39,7 +39,7 @@ void deploy_server(char * topo[MAX_EDGE_NUM], int line_num,char * filename)
     while(true)
     {
         service_set.clear();
-        for(unsigned int i=0; i<demand_cnt*2; i++)
+        for(unsigned int i=0; i<demand_cnt*0.8; i++)
         {
             service_set.insert(rand()%node_cnt);
         }
@@ -54,12 +54,13 @@ void deploy_server(char * topo[MAX_EDGE_NUM], int line_num,char * filename)
             cout<<"valid:"<<cost<<endl;
             valid_cnt++;
         }
+
         if(valid_cnt>10)
             break;
 
     }
 
     string out_string=flow2string();
-//    cout<<endl<<out_string<<endl;
+    cout<<endl<<out_string<<endl;
     write_result(out_string.c_str(), filename);
 }
