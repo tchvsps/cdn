@@ -51,7 +51,7 @@ void deploy_server(char * topo[MAX_EDGE_NUM], int line_num,char * filename)
         {
             cout<<"valid:"<<cost<<endl;
             valid_cnt++;
-            if(valid_cnt>100)
+            if(valid_cnt>10)
                 break;
         }
 
