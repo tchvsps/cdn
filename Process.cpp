@@ -60,6 +60,16 @@ void addedge(int from,int to,int cap,int cost)//加边
     // G[to].push_back(m-1);
 }
 
+void deleteedge(void)
+{
+    unsigned int from=edges[edges.size()-1].from;
+    unsigned int to=edges[edges.size()-1].to;
+    edges.pop_back();
+//    edges.pop_back();
+    G[from].pop_back();
+//    G[to].pop_back();
+}
+
 void init_graph(char * topo[], int line_num)
 {
     sscanf(topo[0],"%d %d %d",&node_cnt,&edge_cnt,&demand_cnt);
