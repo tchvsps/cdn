@@ -26,6 +26,8 @@ int MCMF(void);
 void init_graph(char * topo[], int line_num);
 void init_service(set<unsigned int> service_set, unsigned int last_service_size);
 
+void init_set(int num);
+
 extern unsigned int node_cnt,demand_cnt,edge_cnt,deploy_cost,demand_sum;
 set<unsigned int> service_set;
 set<unsigned int> best_service_set;
@@ -36,7 +38,7 @@ string flow2string(void);
 
 
 void prepare_for_creat(void);
-void create_set(int);
+void update_set();
 
 unsigned int search_cnt=0;
 int valid_cnt=0;
@@ -46,54 +48,17 @@ time_t t1;
 void deploy_server(char * topo[MAX_EDGE_NUM], int line_num,char * filename)
 {
     t1=time(NULL);
-    srand(time(NULL));
+    srand(0);
     init_graph(topo,line_num);
-
     prepare_for_creat();
 
-    dyna_service_num=demand_cnt*0.4;
-
     unsigned int last_service_size=0;
+    init_set(demand_cnt);
     while(true)
     {
-        create_set(dyna_service_num);
         init_service(service_set,last_service_size);
         last_service_size=service_set.size();
-
-        search_cnt++;
-        if(search_cnt%10==0){
-            switch(valid_cnt){
-                case 10:
-                    dyna_service_num=dyna_service_num*0.8;
-                    break;
-                case 9:
-                    dyna_service_num-=2;
-                    break;
-                case 8:
-                case 7:
-                    dyna_service_num--;
-                    break;
-                case 0:
-                    dyna_service_num*1.2;
-                    break;
-                case 1:
-                    dyna_service_num+=2;
-                    break;
-                case 2:
-                case 3:
-                    dyna_service_num+=1;
-                    break;
-            }
-//            if(dyna_service_num>demand_cnt)
-//                dyna_service_num=demand_cnt;
-//            if(dyna_service_num<0)
-//                dyna_service_num=0;
-
-            valid_cnt=0;
-            cout<<"dyna servic:"<<dyna_service_num<<endl;
-        }
         int cost=MCMF();
-
         if(cost>0)
         {
             cout<<"this:"<<cost<<"best:"<<best_cost<<endl<<endl;
@@ -110,10 +75,22 @@ void deploy_server(char * topo[MAX_EDGE_NUM], int line_num,char * filename)
                 best_cost=cost;
             }
 
+            update_set();
+
+        }
+        if(cost<0){
+            cout<<"INVALID"<<endl;
+            init_set(demand_cnt);
         }
 
         if(time(NULL)-t1>80)
             break;
+    }
+
+    if(best_cost==10000000)
+    {
+        cout<<"NOT FIND"<<endl;
+        return;
     }
 
     init_service(best_service_set,last_service_size);

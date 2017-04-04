@@ -52,6 +52,7 @@ void init(int node_cnt)//初始化
     edges.clear();
 }
 
+map<unsigned int,unsigned int> node2edge;
 void addedge(int from,int to,int cap,int cost)//加边
 {
     edges.push_back(Edge(from,to,cap,0,cost));
@@ -59,6 +60,15 @@ void addedge(int from,int to,int cap,int cost)//加边
     int m=edges.size();
     G[from].push_back(m-1);
     // G[to].push_back(m-1);
+}
+
+void addedge_for_sink(int from,int to,int cap,int cost)//加边
+{
+    edges.push_back(Edge(from,to,cap,0,cost));
+    // edges.push_back(Edge(to,from,0,0,-cost));
+    int m=edges.size();
+    G[from].push_back(m-1);
+    node2edge[from]=m-1;
 }
 
 void deleteedge(void)
@@ -77,7 +87,6 @@ void init_graph(char * topo[], int line_num)
     sscanf(topo[2],"%d",&deploy_cost);
 
     init(node_cnt+3);
-
 
     unsigned int start_node,stop_node,bandwidth,length;
 
@@ -114,7 +123,7 @@ void init_service(set<unsigned int> service_set, unsigned int last_service_size)
     set<unsigned int>::iterator service_iter;
     for(service_iter=service_set.begin();service_iter!=service_set.end();++service_iter)
     {
-        addedge(*service_iter,node_cnt+1,INF,0);
+        addedge_for_sink(*service_iter,node_cnt+1,INF,0);
     }
 }
 
@@ -209,7 +218,7 @@ int MincotMaxflow(int s,int t)
         cost+=deploy_cost*service_set.size();
         return cost;
     }else{
-        cout<<"INVALID!"<<endl;
+//        cout<<"INVALID!"<<endl;
         return -1;
     }
 }
