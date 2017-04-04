@@ -21,6 +21,7 @@ using namespace std;
 
 unsigned int node_cnt,demand_cnt,edge_cnt,deploy_cost,demand_sum;
 map<unsigned int,unsigned int> node2demand;
+map<unsigned int, unsigned int> demand2node;
 extern set<unsigned int> service_set;
 extern set<unsigned int> best_service_set;
 
@@ -95,6 +96,7 @@ void init_graph(char * topo[], int line_num)
         demand_sum+=demand;
         addedge(node_cnt,service_index,demand,0);
         node2demand[service_index]=demand_index;
+        demand2node[demand_index]=service_index;
     }
     origal_edges.assign(edges.begin(), edges.end());
 }
@@ -202,7 +204,7 @@ int MincotMaxflow(int s,int t)
 {
     int flow=0,cost=0;
     while(SPFA(s,t,flow,cost)){};
-    cout<<flow<<":"<<cost<<endl;
+//    cout<<flow<<":"<<cost<<endl;
     if(flow==demand_sum){
         cost+=deploy_cost*service_set.size();
         return cost;
