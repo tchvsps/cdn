@@ -27,15 +27,14 @@ void init_graph(char * topo[], int line_num);
 void init_service(set<unsigned int> service_set, unsigned int last_service_size);
 
 void init_set(int num);
+void dpos(void);
 
 extern unsigned int node_cnt,demand_cnt,edge_cnt,deploy_cost,demand_sum;
 set<unsigned int> service_set;
+extern unsigned int last_service_size;
 set<unsigned int> best_service_set;
 int best_cost=10000000;
 string flow2string(void);
-
-
-
 
 void prepare_for_creat(void);
 void update_set();
@@ -44,60 +43,71 @@ unsigned int search_cnt=0;
 int valid_cnt=0;
 int dyna_service_num;
 
+int init_service_num;
+bool update_big=true;
+
 time_t t1;
+
+#define dim 1000
+extern char gbest[dim];
+
+int array2cost(char* arr);
+
 void deploy_server(char * topo[MAX_EDGE_NUM], int line_num,char * filename)
 {
     t1=time(NULL);
-    srand(0);
+    srand(time(NULL));
     init_graph(topo,line_num);
+
+
     prepare_for_creat();
+    last_service_size=0;
+    dpos();
+//
+//    init_service_num=demand_cnt*0.5;
+//    init_set(init_service_num);
+//    while(true)
+//    {
+//        init_service(service_set,last_service_size);
+//        int cost=MCMF();
+//        search_cnt++;
+//
+//        if(cost>0)
+//        {
+//            cout<<"this:"<<cost<<"best:"<<best_cost<<endl<<endl;
+//            valid_cnt++;
+//            if(cost<best_cost)
+//            {
+//                best_service_set.clear();
+//                set<unsigned int>::iterator set_iter;
+//                for(set_iter=service_set.begin();set_iter!=service_set.end();set_iter++)
+//                {
+//                    best_service_set.insert(*set_iter);
+//                }
+//                best_cost=cost;
+//            }
+//            update_set();
+//        }
+//        if(cost<0){
+//            cout<<"INVALID"<<endl;
+//            if(update_big){
+//                update_big=false;
+//            }
+//            init_set(init_service_num);
+//        }
+//        if(time(NULL)-t1>88)
+//            break;
+//    }
+//
+//    if(best_cost==10000000)
+//    {
+//        cout<<"NOT FIND"<<endl;
+//        return;
+//    }
 
-    unsigned int last_service_size=0;
-    init_set(demand_cnt);
-    while(true)
-    {
-        init_service(service_set,last_service_size);
-        last_service_size=service_set.size();
-        int cost=MCMF();
-        if(cost>0)
-        {
-            cout<<"this:"<<cost<<"best:"<<best_cost<<endl<<endl;
-            valid_cnt++;
-            if(cost<best_cost)
-            {
-
-                best_service_set.clear();
-                set<unsigned int>::iterator set_iter;
-                for(set_iter=service_set.begin();set_iter!=service_set.end();set_iter++)
-                {
-                    best_service_set.insert(*set_iter);
-                }
-                best_cost=cost;
-            }
-
-            update_set();
-
-        }
-        if(cost<0){
-            cout<<"INVALID"<<endl;
-            init_set(demand_cnt);
-        }
-
-        if(time(NULL)-t1>80)
-            break;
-    }
-
-    if(best_cost==10000000)
-    {
-        cout<<"NOT FIND"<<endl;
-        return;
-    }
-
-    init_service(best_service_set,last_service_size);
-    last_service_size=best_service_set.size();
-    MCMF();
+    int final_best=array2cost(gbest);
     string out_string=flow2string();
     cout<<endl<<out_string<<endl;
-    cout<<endl<<endl<<"final best:"<<best_cost<<endl;
+    cout<<endl<<endl<<"final best:"<<final_best<<endl;
     write_result(out_string.c_str(), filename);
 }

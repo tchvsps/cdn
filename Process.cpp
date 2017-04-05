@@ -110,9 +110,11 @@ void init_graph(char * topo[], int line_num)
     origal_edges.assign(edges.begin(), edges.end());
 }
 
-void init_service(set<unsigned int> service_set, unsigned int last_service_size)
+unsigned int last_service_size=0;
+
+void init_service(set<unsigned int> service_set, unsigned int _last_service_size)
 {
-    for(unsigned int i=0; i<last_service_size; i++)
+    for(unsigned int i=0; i<_last_service_size; i++)
     {
         deleteedge();
     }
@@ -125,6 +127,7 @@ void init_service(set<unsigned int> service_set, unsigned int last_service_size)
     {
         addedge_for_sink(*service_iter,node_cnt+1,INF,0);
     }
+    last_service_size=service_set.size();
 }
 
 bool SPFA(int s,int t,int &flow,int &cost)//寻找最小费用的增广路，使用引用同时修改原flow,cost

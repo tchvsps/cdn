@@ -68,7 +68,7 @@ void dfs(unsigned int demand_index,unsigned int node_index, unsigned int deepth)
     }
 }
 void service_search(){
-    search_deepth=5;
+    search_deepth=4;
     set<unsigned int>::iterator demand_iter;
     for(unsigned int i=0; i<demand_cnt; i++){
         dfs(i,demand2node[i],0);
@@ -151,7 +151,7 @@ int select_one()
         }
     }
 
-    while(true){
+//    while(true){
         int rand_demand_index=random()%unassigned_demand_set.size();
         set<unsigned int>::iterator set_iter=unassigned_demand_set.begin();
         while(rand_demand_index--)
@@ -166,9 +166,9 @@ int select_one()
         {
             unassigned_demand_set.erase(unassigned_demand_set.find(rand_demand_index));
             service[new_service_index].sele_action();
-            return new_service_index;
         }
-    }
+        return new_service_index;
+//    }
 }
 
 void init_set(int num){
@@ -198,7 +198,16 @@ int find_min_service(void)
 }
 
 int degee_sum=0;
+bool extern update_big;
 set<unsigned int> unassigned_demand_set;
 void update_set(){
-    service_set.erase(service_set.find(find_min_service()));
+    if(update_big){
+//        for(unsigned int i=0; i<5; i++){
+//            service_set.erase(service_set.find(find_min_service()));
+//        }
+        service_set.erase(service_set.find(find_min_service()));
+    }else
+    {
+        service_set.erase(service_set.find(find_min_service()));
+    }
 }
