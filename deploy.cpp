@@ -53,15 +53,58 @@ extern char gbest[dim];
 
 int array2cost(char* arr);
 
+void zkw_test(char * topo[], int line_num);
+
+
+#include "zkw.h"
+extern unsigned int node_cnt;
+extern unsigned int demand_cnt;
+void init_set(int num);
+extern set<unsigned int> service_set;
+void init_set(int num);
+
+void zkw_test(char*topo[], int line_num)
+{
+    MCMF_ZKW zkw;
+    zkw.Init(node_cnt,node_cnt+1);
+    zkw.init_graph(topo,line_num);
+
+    set<unsigned int>::iterator set_iter;
+    for(set_iter=service_set.begin(); set_iter!=service_set.end(); set_iter++)
+    {
+        zkw.add(*set_iter,node_cnt+1,INF,0);
+    }
+    cout<<"ZKW TEST"<<endl;
+    zkw.Zkw_Flow();
+    cout<<endl<<zkw.ans<<endl;
+}
+
 void deploy_server(char * topo[MAX_EDGE_NUM], int line_num,char * filename)
 {
     t1=time(NULL);
-    srand(time(NULL));
+
+//    srand(time(NULL));
+    srand(0);
     init_graph(topo,line_num);
 
 
     prepare_for_creat();
+
+    init_set(demand_cnt);
+
+    cout<<"SPAF TEST:"<<endl;
     last_service_size=0;
+    init_service(service_set,last_service_size);
+    cout<<MCMF()<<endl;
+    init_service(service_set,last_service_size);
+    cout<<MCMF()<<endl;
+    init_service(service_set,last_service_size);
+    cout<<MCMF()-service_set.size()*deploy_cost<<endl;
+
+    cout<<"zkw TEST:"<<endl;
+
+    zkw_test(topo,line_num);
+    cout<<""<<endl;
     dpos();
 //
 //    init_service_num=demand_cnt*0.5;

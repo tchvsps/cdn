@@ -1,102 +1,84 @@
-#include <cmath>
-#include <queue>
-#include <cstdio>
-#include <cstring>
-using namespace std;
-#define max(a,b) ((a)>(b)?(a):(b))
-#define min(a,b) ((a)<(b)?(a):(b))
 
-const int INF = 0x3fffffff ;   //权值上限
-const int MAXPT = 5000*2+100 ;     //顶点数上限
-const int MAXEG = 120005 ;    //边数上限
+#include "zkw.h"
 
-//template<typename Type>
-class MCMF_ZKW
-{
-private:
-   int head[MAXPT],d[MAXPT],e;
-   bool vis[MAXPT];
-   int ans,cost,src,des,n;
+    void MCMF_ZKW::dw(int &a,int b){ if (b< a) a=b; }
 
-   struct Node
-   {
-      int v,flow,cost,next,re;
-      Node(){}
-      Node (int _v,int _flow,int _cost,int _next,int _re)
-      {
-         v=_v,flow=_flow,cost=_cost;
-         next=_next,re=_re;
-      }
-   }edges[MAXEG];
+    void MCMF_ZKW:: add(int a,int b,int up,int co)
+    {
+      ++tot;V[tot]=b;G[tot]=up;C[tot]=co;N[tot]=F[a];F[a]=tot;
+      ++tot;V[tot]=a;G[tot]=0;C[tot]=-co;N[tot]=F[b];F[b]=tot;
+      B[tot]=tot-1;B[tot-1]=tot;
+    }
 
-   int aug (int u,int f)
-   {
-      if (u == des)
-      {
-         ans+=cost*f;
-         return f;
-      }
-      vis[u]=true;
-      int tmp=f;
-      for (int i=head[u]; i!=-1; i=edges[i].next)
-         if (edges[i].flow && !edges[i].cost && vis[edges[i].v]==false)
+    int MCMF_ZKW:: aug(int u,int f)
+    {
+       int p,t,left=f;
+       if (u==T) { ans+=f*d[S];return f; }
+       v[u]=1;
+       for (p=F[u];p;p=N[p])
+         if (G[p]>0&&!v[V[p]])
          {
-            int delta = aug(edges[i].v, tmp < edges[i].flow ? tmp : edges[i].flow);
-            edges[i].flow -= delta;
-            edges[edges[i].re].flow += delta;
-            tmp -= delta;
-            if (tmp==0)
-               return f;
+           t=d[V[p]]+C[p]-d[u];
+           if (t==0)
+           {
+              int delt=aug(V[p],G[p]< left? G[p] : left);
+              if (delt>0) G[p]-=delt,G[B[p]]+=delt,left-=delt;
+              if (left==0) return f;
+           }else dw(slk[V[p]],t);
          }
-      return f-tmp;
+       return f-left;
+    }
+
+    bool MCMF_ZKW:: modlabel()
+    {
+        int delt=INF,i;
+        for (i=1;i<=T;i++)
+          if (!v[i]) { dw(delt,slk[i]);slk[i]=INF;}
+        if (delt==INF) return true;
+        for (i=1;i<=T;i++)
+          if (v[i]) d[i]+=delt;
+        return false;
+    }
+
+    void MCMF_ZKW:: Zkw_Flow()
+    {
+         int i;ans=0;
+         for (i=1;i<=T;i++) d[i]=0,slk[i]=INF;
+         do{
+             do {memset(v,0,sizeof(v));}while (aug(S,INF));
+         }while (!modlabel());
+    }
+
+    void MCMF_ZKW:: Init (int _s,int _t)    //算法初始化
+   {
+      S=_s;T=_t;
    }
 
-   bool modlabel ()
+    void MCMF_ZKW:: init_graph(char * topo[], int line_num)
    {
-      for (int i=0;i<=n;i++)
-         d[i]=INF;
-      d[des] = 0;
-      deque<int>Q;
-      Q.push_back(des);
-      while (!Q.empty())
-      {
-         int u=Q.front(),tmp;
-         Q.pop_front();
-         for (int i=head[u]; i!=-1; i=edges[i].next)
-            if (edges[edges[i].re].flow && (tmp = d[u]-edges[i].cost) < d[edges[i].v])
-               (d[edges[i].v] = tmp) <= d[Q.empty() ? src : Q.front()] ? Q.push_front(edges[i].v) : Q.push_back(edges[i].v);
-      }
-      for (int u=1;u<=n;u++)
-         for (int i=head[u]; i!=-1; i=edges[i].next)
-            edges[i].cost += d[edges[i].v] - d[u];
-         cost+=d[src];
-         return d[src] < INF;
-   }
-public:
+        int _node_cnt,_edge_cnt,_demand_cnt;
+        sscanf(topo[0],"%d %d %d",&_node_cnt,&_edge_cnt,&_demand_cnt);
 
-   void Init (int _s,int _t)    //算法初始化
-   {
-      src=_s;des=_t;
-      e=0,n=des;
-      memset (head,-1,sizeof(head));
-      ans=cost=0;
+
+        unsigned int start_node,stop_node,bandwidth,length;
+
+        for(unsigned int i=4; i<4+_edge_cnt; i++)
+        {
+            sscanf(topo[i],"%d %d %d %d",&start_node,&stop_node,&bandwidth,&length);
+            add(start_node,stop_node,bandwidth,length);
+            add(stop_node,start_node,bandwidth,length);
+        }
+
+        unsigned int demand_index,service_index,demand;
+        for(unsigned int i=5+_edge_cnt; i<5+_edge_cnt+_demand_cnt; i++)
+        {
+            sscanf(topo[i],"%d %d %d",&demand_index,&service_index,&demand);
+            add(_node_cnt,service_index,demand,0);
+        }
+//        memcpy(this->origal_edges,this->edges,sizeof(edges));
    }
 
-   void Add (int u,int v,int flow,int cost)
-   {
-      edges[e]=Node(v,flow,cost,head[u],e+1);
-      head[u] = e++;
-      edges[e]=Node(u,0,-cost,head[v],e-1);
-      head[v] = e++;
-   }
 
-   int ZKW ()
-   {
-      while(modlabel())
-         do
-         {
-            memset(vis,false,sizeof(vis));
-         }while(aug(src,INF));
-      return ans;
-   }
-};
+
+
+
