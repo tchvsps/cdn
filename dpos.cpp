@@ -51,6 +51,8 @@ extern set<unsigned int> service_set;
 extern map<unsigned int, unsigned int> demand2node;
 
 // 种群初始化
+extern set<unsigned int > set_from_chen_hang;
+extern int mini_cost_from_chen_hang;
 void pop_init(void)
 {
     int _best_index=0;
@@ -59,25 +61,27 @@ void pop_init(void)
     g_flow_cost=100000;
 
     memset(pop,sizeof(pop),0);
-    cout<<sizeof(pop)<<endl;
+//    cout<<sizeof(pop)<<endl;
     memset(pbest,sizeof(pbest),0);
-    cout<<sizeof(pbest)<<endl;
+//    cout<<sizeof(pbest)<<endl;
     memset(gbest,sizeof(gbest),0);
-    cout<<sizeof(gbest)<<endl;
+//    cout<<sizeof(gbest)<<endl;
     memset(V,sizeof(V),0);
-    cout<<sizeof(V)<<endl;
+//    cout<<sizeof(V)<<endl;
     unsigned int front_cnt;
     front_cnt=1;
 
     for(unsigned int i=0; i<front_cnt; i++)
     {
-        for(unsigned int j=0; j<demand_cnt; j++)
+        set<unsigned int>::iterator set_iter;
+        for(set_iter=set_from_chen_hang.begin(); set_iter!=set_from_chen_hang.end(); ++set_iter)
         {
-            pop[i][demand2node[j]]=1;
+            pop[i][*set_iter]=1;
         }
     }
-    cout<<"first done"<<endl;
 
+    g_flow_cost=mini_cost_from_chen_hang;
+    memcpy(gbest,pop[0],sizeof(gbest));
 
 	for(int i=front_cnt;i<sizepop;i++)
 	{
@@ -102,17 +106,11 @@ void pop_init(void)
             pop[i][*set_iter]=1;
         }
 	}
-	cout<<"all done"<<endl;
 
-    cout<<"cp size:"<<sizeof(pbest)<<endl;
-	memcpy(gbest,pop[_best_index],sizeof(gbest));
-
-	cout<<"first cp"<<endl;
 	for(unsigned int i=0; i<sizepop; i++)
 	{
         memcpy(pbest[i],pop[i],sizeof(pbest[i]));
 	}
-	cout<<"cp best done"<<endl;
 }
 
 float sigmal(float x)

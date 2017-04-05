@@ -47,6 +47,7 @@ int init_service_num;
 bool update_big=true;
 
 time_t t1;
+time_t t_start;
 
 #define dim 1000
 extern char gbest[dim];
@@ -69,15 +70,21 @@ void zkw_test(char*topo[], int line_num)
     zkw.Init(node_cnt,node_cnt+1);
     zkw.init_graph(topo,line_num);
 
-    set<unsigned int>::iterator set_iter;
-    for(set_iter=service_set.begin(); set_iter!=service_set.end(); set_iter++)
-    {
-        zkw.add(*set_iter,node_cnt+1,INF,0);
-    }
+    zkw.add_service(service_set);
+    cout<<"ZKW TEST"<<endl;
+    zkw.Zkw_Flow();
+    cout<<endl<<zkw.ans<<endl;
+
+    zkw.delete_service();
+    zkw.add_service(service_set);
     cout<<"ZKW TEST"<<endl;
     zkw.Zkw_Flow();
     cout<<endl<<zkw.ans<<endl;
 }
+
+
+set<unsigned int > set_from_chen_hang;
+int mini_cost_from_chen_hang=100000;
 
 void deploy_server(char * topo[MAX_EDGE_NUM], int line_num,char * filename)
 {
@@ -85,68 +92,58 @@ void deploy_server(char * topo[MAX_EDGE_NUM], int line_num,char * filename)
 
 //    srand(time(NULL));
     srand(0);
+    last_service_size=0;
+
     init_graph(topo,line_num);
-
-
     prepare_for_creat();
 
-    init_set(demand_cnt);
+    MCMF_ZKW zkw;
+    zkw.Init(node_cnt,node_cnt+1);
+    zkw.init_graph(topo,line_num);
 
-    cout<<"SPAF TEST:"<<endl;
-    last_service_size=0;
-    init_service(service_set,last_service_size);
-    cout<<MCMF()<<endl;
-    init_service(service_set,last_service_size);
-    cout<<MCMF()<<endl;
-    init_service(service_set,last_service_size);
-    cout<<MCMF()-service_set.size()*deploy_cost<<endl;
+    t_start=time(NULL);
+    for(unsigned int i=0 ; i<1000; i++){
+        init_set(demand_cnt);
+        init_service(service_set,last_service_size);
+        MCMF();
+    }
+    cout<<"start time:"<<t_start<<" stop time:"<<time(NULL)<<" last:"<<time(NULL)-t_start<<endl;
 
-    cout<<"zkw TEST:"<<endl;
+    t_start=time(NULL);
+    for(unsigned int i=0; i<1000; i++)
+    {
+        init_set(demand_cnt);
+        zkw.add_service(service_set);
+        zkw.Zkw_Flow();
+//        cout<<"zkw :";
+//        cout<<zkw.ans+deploy_cost*service_set.size()<<" "<<zkw.all_demand<<endl<<endl;
+    }
+    cout<<"start time:"<<t_start<<"  stop time:"<<time(NULL)<<" last:"<<time(NULL)-t_start<<endl;
 
-    zkw_test(topo,line_num);
-    cout<<""<<endl;
-    dpos();
 //
-//    init_service_num=demand_cnt*0.5;
-//    init_set(init_service_num);
-//    while(true)
-//    {
+//    t_start=time(NULL);
+//    for(unsigned int i=0 ; i<1000; i++){
+//        init_set(demand_cnt);
+//
 //        init_service(service_set,last_service_size);
-//        int cost=MCMF();
-//        search_cnt++;
-//
-//        if(cost>0)
-//        {
-//            cout<<"this:"<<cost<<"best:"<<best_cost<<endl<<endl;
-//            valid_cnt++;
-//            if(cost<best_cost)
-//            {
-//                best_service_set.clear();
-//                set<unsigned int>::iterator set_iter;
-//                for(set_iter=service_set.begin();set_iter!=service_set.end();set_iter++)
-//                {
-//                    best_service_set.insert(*set_iter);
-//                }
-//                best_cost=cost;
-//            }
-//            update_set();
-//        }
-//        if(cost<0){
-//            cout<<"INVALID"<<endl;
-//            if(update_big){
-//                update_big=false;
-//            }
-//            init_set(init_service_num);
-//        }
-//        if(time(NULL)-t1>88)
-//            break;
+//        cout<<"SPAF:";
+//        cout<<MCMF()<<endl;
 //    }
+//    cout<<"start time:"<<t_start<<" stop time:"<<time(NULL)<<" last:"<<time(NULL)-t_start<<endl;
 //
-//    if(best_cost==10000000)
+//    t_start=time(NULL);
+//    for(unsigned int i=0; i<1000; i++)
 //    {
-//        cout<<"NOT FIND"<<endl;
-//        return;
+//        init_set(demand_cnt);
+//        zkw.add_service(service_set);
+//        zkw.Zkw_Flow();
+//        cout<<"zkw :";
+//        cout<<zkw.ans+deploy_cost*service_set.size()<<" "<<zkw.all_demand<<endl<<endl;
 //    }
+//    cout<<"start time:"<<t_start<<"  stop time:"<<time(NULL)<<" last:"<<time(NULL)-t_start<<endl;
+//
+
+    dpos();
 
     int final_best=array2cost(gbest);
     string out_string=flow2string();
