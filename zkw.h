@@ -12,7 +12,7 @@
 
 using namespace std;
 #define maxn 2000
-#define maxm 2000
+#define maxm 10000
 #define INF 1<<30
 
 class MCMF_ZKW

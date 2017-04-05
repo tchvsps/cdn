@@ -85,41 +85,62 @@ void zkw_test(char*topo[], int line_num)
 
 set<unsigned int > set_from_chen_hang;
 int mini_cost_from_chen_hang=100000;
+MCMF_ZKW zkw;
+extern map<unsigned int,unsigned int> node2demand;
+extern map<unsigned int,unsigned int> demand2node;
 
 void deploy_server(char * topo[MAX_EDGE_NUM], int line_num,char * filename)
 {
     t1=time(NULL);
 
-//    srand(time(NULL));
-    srand(0);
+    srand(time(NULL));
+//    srand(0);
     last_service_size=0;
 
     init_graph(topo,line_num);
     prepare_for_creat();
 
-    MCMF_ZKW zkw;
+
     zkw.Init(node_cnt,node_cnt+1);
     zkw.init_graph(topo,line_num);
 
-    t_start=time(NULL);
-    for(unsigned int i=0 ; i<1000; i++){
-        init_set(demand_cnt);
-        init_service(service_set,last_service_size);
-        MCMF();
-    }
-    cout<<"start time:"<<t_start<<" stop time:"<<time(NULL)<<" last:"<<time(NULL)-t_start<<endl;
+//    init_set(demand_cnt);
+//    init_service(service_set,last_service_size);
+//    cout<<"SPFA: "<<MCMF()<<endl;
+//
+//    zkw.add_service(service_set);
+//    zkw.Zkw_Flow();
+//    cout<<"ZKW : "<<zkw.ans<<endl;
+//    zkw.add_service(service_set);
+//    zkw.Zkw_Flow();
+//    cout<<"ZKW : "<<zkw.ans<<endl;
 
-    t_start=time(NULL);
-    for(unsigned int i=0; i<1000; i++)
-    {
-        init_set(demand_cnt);
-        zkw.add_service(service_set);
-        zkw.Zkw_Flow();
+//    t_start=time(NULL);
+//    for(unsigned int i=0 ; i<100; i++){
+//        init_set(demand_cnt);
+//        init_service(service_set,last_service_size);
+//        cout<<MCMF()<<" ";
+//
+////        init_set(demand_cnt);
+//        zkw.add_service(service_set);
+//        zkw.Zkw_Flow();
 //        cout<<"zkw :";
-//        cout<<zkw.ans+deploy_cost*service_set.size()<<" "<<zkw.all_demand<<endl<<endl;
-    }
-    cout<<"start time:"<<t_start<<"  stop time:"<<time(NULL)<<" last:"<<time(NULL)-t_start<<endl;
-
+//        cout<<zkw.ans<<" "<<zkw.all_demand<<endl;
+//
+//    }
+//    cout<<"start time:"<<t_start<<" stop time:"<<time(NULL)<<" last:"<<time(NULL)-t_start<<endl;
+//
+//    t_start=time(NULL);
+//    for(unsigned int i=0; i<1000; i++)
+//    {
+//        init_set(demand_cnt);
+//        zkw.add_service(service_set);
+//        zkw.Zkw_Flow();
+////        cout<<"zkw :";
+////        cout<<zkw.ans+deploy_cost*service_set.size()<<" "<<zkw.all_demand<<endl<<endl;
+//    }
+//    cout<<"start time:"<<t_start<<"  stop time:"<<time(NULL)<<" last:"<<time(NULL)-t_start<<endl;
+//
 //
 //    t_start=time(NULL);
 //    for(unsigned int i=0 ; i<1000; i++){
@@ -141,7 +162,19 @@ void deploy_server(char * topo[MAX_EDGE_NUM], int line_num,char * filename)
 //        cout<<zkw.ans+deploy_cost*service_set.size()<<" "<<zkw.all_demand<<endl<<endl;
 //    }
 //    cout<<"start time:"<<t_start<<"  stop time:"<<time(NULL)<<" last:"<<time(NULL)-t_start<<endl;
-//
+
+
+    for(unsigned int i=0; i<demand_cnt*0.5; i++){
+        set_from_chen_hang.insert(demand2node[i]);
+    }
+
+    zkw.add_service(set_from_chen_hang);
+    zkw.Zkw_Flow();
+    if(zkw.ans<0){
+        mini_cost_from_chen_hang=100000;
+    }else{
+        mini_cost_from_chen_hang=zkw.ans;
+    }
 
     dpos();
 

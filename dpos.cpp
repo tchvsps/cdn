@@ -7,19 +7,21 @@
 #include<iostream>
 #include<map>
 
+#include"zkw.h"
+
 #define c1 1.49445
 #define c2 1.49445
 #define maxgen 5000
 
-#define sizepop 40
+#define sizepop 100
 
 #define Vmax 4.0
 #define Vmin -4.0
 
 #define dim 1000
 
-#define w_start 1.15
-#define w_end 0.8
+#define w_start 1.7
+#define w_end 0.6
 
 #define PI 3.1415926
 
@@ -34,6 +36,8 @@ extern set<unsigned int> service_set;
 extern unsigned int last_service_size;
 extern set<unsigned int> best_service_set;
 extern time_t t1;
+
+extern MCMF_ZKW zkw;
 
 char pop[sizepop][dim]={0};
 char pbest[sizepop][dim]={{0}};
@@ -58,7 +62,7 @@ void pop_init(void)
     int _best_index=0;
     int _best_cost=1000000;
     int _tmp_cost;
-    g_flow_cost=100000;
+    g_flow_cost=1000000;
 
     memset(pop,sizeof(pop),0);
 //    cout<<sizeof(pop)<<endl;
@@ -68,32 +72,30 @@ void pop_init(void)
 //    cout<<sizeof(gbest)<<endl;
     memset(V,sizeof(V),0);
 //    cout<<sizeof(V)<<endl;
-    unsigned int front_cnt;
-    front_cnt=1;
 
-    for(unsigned int i=0; i<front_cnt; i++)
+    set<unsigned int>::iterator set_iter;
+    for(set_iter=set_from_chen_hang.begin(); set_iter!=set_from_chen_hang.end(); ++set_iter)
     {
-        set<unsigned int>::iterator set_iter;
-        for(set_iter=set_from_chen_hang.begin(); set_iter!=set_from_chen_hang.end(); ++set_iter)
-        {
-            pop[i][*set_iter]=1;
-        }
+        pop[0][*set_iter]=1;
     }
+    _best_cost=mini_cost_from_chen_hang;
+    _best_index=0;
 
-    g_flow_cost=mini_cost_from_chen_hang;
-    memcpy(gbest,pop[0],sizeof(gbest));
-
-	for(int i=front_cnt;i<sizepop;i++)
+	for(int i=1;i<sizepop;i++)
 	{
-        do{
-            init_set(demand_cnt*1);
-            init_service(service_set,last_service_size);
-            _tmp_cost=MCMF();
-//            cout<<_tmp_cost<<endl;
-        }while(_tmp_cost<0);
+        init_set(demand_cnt*1);
+//
+//        init_service(service_set,last_service_size);
+//        _tmp_cost=MCMF();
+        zkw.add_service(service_set);
+        zkw.Zkw_Flow();
+        _tmp_cost=zkw.ans;
 
+        if(_tmp_cost<0)
+        {
+            _tmp_cost=1000000;
+        }
         p_flow_cost[i]=_tmp_cost;
-        g_flow_cost=min(g_flow_cost,_tmp_cost);
 
         if(_tmp_cost<_best_cost){
             _best_cost=_tmp_cost;
@@ -106,6 +108,9 @@ void pop_init(void)
             pop[i][*set_iter]=1;
         }
 	}
+
+    g_flow_cost=_best_cost;
+    memcpy(gbest,pop[_best_index],sizeof(gbest));
 
 	for(unsigned int i=0; i<sizepop; i++)
 	{
@@ -126,10 +131,7 @@ void PSO_func(int n)
 {
 	pop_init();
 	cout<<"init done"<<endl;
-
 	//迭代寻优
-
-
 	for(int i=0;i<maxgen;i++)
 	{
         con_flg=true;
@@ -138,7 +140,7 @@ void PSO_func(int n)
         int _tmp_cost;
 
         float w;
-        float Tmax = 400.0;
+        float Tmax = 1000.0;
 
         if(i<Tmax)
         {
@@ -178,14 +180,17 @@ void PSO_func(int n)
                 }
 			}
 
-
-            init_service(service_set,last_service_size);
-			_tmp_cost=MCMF();
+//            init_service(service_set,last_service_size);
+//			_tmp_cost=MCMF();
+//
 			if(_tmp_cost!=g_flow_cost) {con_flg=false;}
 //			cout<<_tmp_cost<<endl;
 //            init_service(service_set,last_service_size);
 //			_tmp_cost=MCMF();
 //			cout<<_tmp_cost<<endl;
+            zkw.add_service(service_set);
+            zkw.Zkw_Flow();
+            _tmp_cost=zkw.ans;
 
 			if(_tmp_cost>0)
 			{
@@ -213,6 +218,8 @@ void PSO_func(int n)
 
         if(con_flg) {break;}
         if(time(NULL)-t1>88) {break;}
+
+        cout<<"min cost:"<<g_flow_cost<<endl;
 	}
 	cout<<"min cost:"<<g_flow_cost<<endl;
 
