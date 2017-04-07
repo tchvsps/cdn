@@ -8,12 +8,6 @@ void MCMF_ZKW:: add(int a,int b,int up,int co)
     ++tot;
     V[tot]=b;G[tot]=up;C[tot]=co;
     N[tot]=F[a];  F[a]=tot;
-
-
-    ++tot;
-    V[tot]=a;G[tot]=0;C[tot]=-co;
-    N[tot]=F[b];F[b]=tot;
-    B[tot]=tot-1;B[tot-1]=tot;
 }
 
 void MCMF_ZKW::delete_service(void)
@@ -32,6 +26,7 @@ void MCMF_ZKW::delete_service(void)
   memcpy(G,origal_G,sizeof(G));
 }
 
+extern unsigned int edge_cnt;
 
 int MCMF_ZKW:: aug(int u,int f)
 {
@@ -46,7 +41,26 @@ int MCMF_ZKW:: aug(int u,int f)
        if (t==0)
        {
           int delt=aug(V[p],G[p]< left? G[p] : left);
-          if (delt>0) G[p]-=delt,G[B[p]]+=delt,left-=delt;
+          if (delt>0) {
+            if(p<=edge_cnt*2)
+            {
+                if(G[p]==G[B[p]])
+                {
+                  C[B[p]]=-C[B[p]];
+                  G[B[p]]=0;
+                }
+                G[p]-=delt,G[B[p]]+=delt,left-=delt;
+                if(G[p]==origal_G[p])
+                {
+
+                }
+
+            }else
+            {
+                G[p]-=delt;
+            }
+
+          }
           if (left==0) return f;
        }else dw(slk[V[p]],t);
      }

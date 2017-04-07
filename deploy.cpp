@@ -165,9 +165,9 @@ void deploy_server(char * topo[MAX_EDGE_NUM], int line_num,char * filename)
     zkw.Init(node_cnt,node_cnt+1);
     zkw.init_graph(topo,line_num);
 
-//    same_eff_test();
+    same_eff_test();
 //    spfa_zkw_time_test();
-    zkw_speed_test();
+//    zkw_speed_test();
 //    for(unsigned int i=0; i<demand_cnt*2; i++){
 //        set_from_chen_hang.insert(demand2node[i]);
 //    }
