@@ -83,7 +83,7 @@ void pop_init(void)
 
 	for(int i=1;i<sizepop;i++)
 	{
-        init_set(demand_cnt*1);
+        init_set(demand_cnt*2);
 //
 //        init_service(service_set,last_service_size);
 //        _tmp_cost=MCMF();

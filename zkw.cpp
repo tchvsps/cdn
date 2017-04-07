@@ -5,29 +5,15 @@ void MCMF_ZKW::dw(int &a,int b){ if (b< a) a=b; }
 
 void MCMF_ZKW:: add(int a,int b,int up,int co)
 {
-//tot: edge num
-//G cap
-//C cost
-//V to node
-//B friend
-  ++tot;V[tot]=b;G[tot]=up;C[tot]=co;
+    ++tot;
+    V[tot]=b;G[tot]=up;C[tot]=co;
+    N[tot]=F[a];  F[a]=tot;
 
-  N[tot]=F[a];
-//  if(N[tot]==tot)
-//    cout<<"error"<<endl;
-//  cout<<"node "<<a<<" heda: from "<<F[a];
-  F[a]=tot;
-//  cout<<" to "<<F[a]<<endl;
 
-  ++tot;V[tot]=a;G[tot]=0;C[tot]=-co;
-  N[tot]=F[b];
-//  if(N[tot]==tot)
-//    cout<<"error"<<endl;
-//  cout<<"node "<<b<<" heda: from "<<F[b];
-  F[b]=tot;
-//  cout<<" to "<<F[b]<<endl;
-
-  B[tot]=tot-1;B[tot-1]=tot;
+    ++tot;
+    V[tot]=a;G[tot]=0;C[tot]=-co;
+    N[tot]=F[b];F[b]=tot;
+    B[tot]=tot-1;B[tot-1]=tot;
 }
 
 void MCMF_ZKW::delete_service(void)
@@ -40,8 +26,6 @@ void MCMF_ZKW::delete_service(void)
     F[_start]=N[F[_start]];
     F[_end]=N[F[_end]];
 
-    cout<<"node "<<_start<<"'s first edge:"<<F[_start]<<endl;
-    cout<<"node "<<_end<<"'s first edge:"<<F[_end]<<endl;
     tot--;
     tot--;
   }
@@ -123,7 +107,7 @@ void MCMF_ZKW:: init_graph(char * topo[], int line_num)
     memset(N,sizeof(N),0);
     memset(F,sizeof(F),0);
     memset(B,sizeof(B),0);
-
+    tot=0;
     int _node_cnt,_edge_cnt,_demand_cnt;
     sscanf(topo[0],"%d %d %d",&_node_cnt,&_edge_cnt,&_demand_cnt);
 
@@ -158,8 +142,6 @@ extern unsigned int demand_cnt;
 
 void MCMF_ZKW:: add_service(set<unsigned int> ser_set)
 {
-
-//    cout<<endl<<endl<<endl<<endl;
 //    delete_service();
 
     memcpy(G,origal_G,sizeof(G));
@@ -176,9 +158,10 @@ void MCMF_ZKW:: add_service(set<unsigned int> ser_set)
         add(*set_iter,node_cnt+1,INF,0);
     }
     this->zkw_last_service_size=ser_set.size();
-
 }
 
+
+//void print_array()
 
 
 

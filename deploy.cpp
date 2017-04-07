@@ -64,24 +64,6 @@ void init_set(int num);
 extern set<unsigned int> service_set;
 void init_set(int num);
 
-void zkw_test(char*topo[], int line_num)
-{
-    MCMF_ZKW zkw;
-    zkw.Init(node_cnt,node_cnt+1);
-    zkw.init_graph(topo,line_num);
-
-    zkw.add_service(service_set);
-    cout<<"ZKW TEST"<<endl;
-    zkw.Zkw_Flow();
-    cout<<endl<<zkw.ans<<endl;
-
-    zkw.delete_service();
-    zkw.add_service(service_set);
-    cout<<"ZKW TEST"<<endl;
-    zkw.Zkw_Flow();
-    cout<<endl<<zkw.ans<<endl;
-}
-
 
 set<unsigned int > set_from_chen_hang;
 int mini_cost_from_chen_hang=100000;
@@ -89,98 +71,120 @@ MCMF_ZKW zkw;
 extern map<unsigned int,unsigned int> node2demand;
 extern map<unsigned int,unsigned int> demand2node;
 
+
+void same_eff_test(void)
+{
+    int last_cost;
+    int dif_cnt;
+    cout<<"same effect test..."<<endl;
+    for(unsigned int i=0 ; i<100000; i++){
+        init_set(demand_cnt*2);
+
+        init_service(service_set,last_service_size);
+        last_cost=MCMF();
+
+        zkw.add_service(service_set);
+        zkw.Zkw_Flow();
+
+//        cout<<"spfa :"<<last_cost<<" "<<"zkw :"<<zkw.ans<<endl;
+        if(last_cost!=zkw.ans)
+        {
+            dif_cnt++;
+        }
+        if(time(NULL)-t1>5){cout<<"all cnt:"<<i<<" dif cnt:"<<dif_cnt<<endl;; break;}
+    }
+    if(dif_cnt==0) cout<<"GOOD: zkw spfa is equal effect"<<endl<<endl;
+}
+
+void spfa_zkw_time_test(void)
+{
+    t_start=time(NULL);
+    for(unsigned int i=0; true; i++)
+    {
+        if(time(NULL)-t_start>=1) break;
+    }
+
+    cout<<"spfa zkw time test..."<<endl;
+    for(unsigned int i=0;true; i++)
+    {
+        init_set(demand_cnt);
+        zkw.add_service(service_set);
+        zkw.Zkw_Flow();
+        if(time(NULL)-t_start>=6)
+        {
+            cout<<"5s zkw:"<<i;
+            break;
+        }
+    }
+    for(unsigned int i=0 ;true; i++){
+        init_set(demand_cnt);
+
+        init_service(service_set,last_service_size);
+        MCMF();
+        if(time(NULL)-t_start>=11)
+        {
+            cout<<" spfa:"<<i<<endl<<endl;
+            break;
+        }
+    }
+}
+
+void zkw_speed_test(void){
+    t_start=time(NULL);
+    for(unsigned int i=0; true; i++)
+    {
+        if(time(NULL)-t_start>=1) break;
+    }
+
+    cout<<"zkw speed test..."<<endl;
+    for(unsigned int i=0;true; i++)
+    {
+        init_set(demand_cnt);
+        zkw.add_service(service_set);
+        zkw.Zkw_Flow();
+        if(time(NULL)-t_start>=11)
+        {
+            cout<<"10s zkw:"<<i<<endl<<endl;
+            break;
+        }
+    }
+}
+
+
 void deploy_server(char * topo[MAX_EDGE_NUM], int line_num,char * filename)
 {
     t1=time(NULL);
 
     srand(time(NULL));
 //    srand(0);
-    last_service_size=0;
 
+    last_service_size=0;
     init_graph(topo,line_num);
     prepare_for_creat();
-
 
     zkw.Init(node_cnt,node_cnt+1);
     zkw.init_graph(topo,line_num);
 
-//    init_set(demand_cnt);
-//    init_service(service_set,last_service_size);
-//    cout<<"SPFA: "<<MCMF()<<endl;
-//
-//    zkw.add_service(service_set);
+//    same_eff_test();
+//    spfa_zkw_time_test();
+    zkw_speed_test();
+//    for(unsigned int i=0; i<demand_cnt*2; i++){
+//        set_from_chen_hang.insert(demand2node[i]);
+//    }
+//    zkw.add_service(set_from_chen_hang);
 //    zkw.Zkw_Flow();
-//    cout<<"ZKW : "<<zkw.ans<<endl;
-//    zkw.add_service(service_set);
-//    zkw.Zkw_Flow();
-//    cout<<"ZKW : "<<zkw.ans<<endl;
-
-//    t_start=time(NULL);
-//    for(unsigned int i=0 ; i<100; i++){
-//        init_set(demand_cnt);
-//        init_service(service_set,last_service_size);
-//        cout<<MCMF()<<" ";
-//
-////        init_set(demand_cnt);
-//        zkw.add_service(service_set);
-//        zkw.Zkw_Flow();
-//        cout<<"zkw :";
-//        cout<<zkw.ans<<" "<<zkw.all_demand<<endl;
-//
+//    if(zkw.ans<0){
+//        mini_cost_from_chen_hang=100000;
+//    }else{
+//        mini_cost_from_chen_hang=zkw.ans;
 //    }
-//    cout<<"start time:"<<t_start<<" stop time:"<<time(NULL)<<" last:"<<time(NULL)-t_start<<endl;
 //
-//    t_start=time(NULL);
-//    for(unsigned int i=0; i<1000; i++)
-//    {
-//        init_set(demand_cnt);
-//        zkw.add_service(service_set);
-//        zkw.Zkw_Flow();
-////        cout<<"zkw :";
-////        cout<<zkw.ans+deploy_cost*service_set.size()<<" "<<zkw.all_demand<<endl<<endl;
-//    }
-//    cout<<"start time:"<<t_start<<"  stop time:"<<time(NULL)<<" last:"<<time(NULL)-t_start<<endl;
+//    dpos();
 //
-//
-//    t_start=time(NULL);
-//    for(unsigned int i=0 ; i<1000; i++){
-//        init_set(demand_cnt);
-//
-//        init_service(service_set,last_service_size);
-//        cout<<"SPAF:";
-//        cout<<MCMF()<<endl;
-//    }
-//    cout<<"start time:"<<t_start<<" stop time:"<<time(NULL)<<" last:"<<time(NULL)-t_start<<endl;
-//
-//    t_start=time(NULL);
-//    for(unsigned int i=0; i<1000; i++)
-//    {
-//        init_set(demand_cnt);
-//        zkw.add_service(service_set);
-//        zkw.Zkw_Flow();
-//        cout<<"zkw :";
-//        cout<<zkw.ans+deploy_cost*service_set.size()<<" "<<zkw.all_demand<<endl<<endl;
-//    }
-//    cout<<"start time:"<<t_start<<"  stop time:"<<time(NULL)<<" last:"<<time(NULL)-t_start<<endl;
+//    int final_best=array2cost(gbest);
+//    string out_string=flow2string();
+//    cout<<endl<<out_string<<endl;
+//    cout<<endl<<endl<<"final best:"<<final_best<<endl;
+//    write_result(out_string.c_str(), filename);
 
-
-    for(unsigned int i=0; i<demand_cnt*0.5; i++){
-        set_from_chen_hang.insert(demand2node[i]);
-    }
-
-    zkw.add_service(set_from_chen_hang);
-    zkw.Zkw_Flow();
-    if(zkw.ans<0){
-        mini_cost_from_chen_hang=100000;
-    }else{
-        mini_cost_from_chen_hang=zkw.ans;
-    }
-
-    dpos();
-
-    int final_best=array2cost(gbest);
-    string out_string=flow2string();
-    cout<<endl<<out_string<<endl;
-    cout<<endl<<endl<<"final best:"<<final_best<<endl;
-    write_result(out_string.c_str(), filename);
 }
