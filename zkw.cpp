@@ -57,6 +57,11 @@ int MCMF_ZKW:: aug(int u,int f)
         return f;
     }
 
+//    if(u==16||u==0)
+//    {
+//        cout<<"key:"<<endl;
+//    }
+
     v[u]=1;
 //    cout<<"visit in "<<u<<endl;
     for (p=F[u];p;p=N[p])
@@ -68,9 +73,12 @@ int MCMF_ZKW:: aug(int u,int f)
             {
                 int delt=aug(V[p],G[p]< left? G[p] : left);
                 if (delt>0) {
-                    cout<<"update:"<<u<<"->"<<V[p]<<": "<<delt<<endl;
+//                    cout<<"update:"<<u<<"->"<<V[p]<<": "<<delt<<endl;
+                    if((u==16&&V[p]==0)||(u==0&&V[p]==16)){
+//                        cout<<"key edges"<<endl;
+                    }
                     if(p<=edge_cnt*2){
-                        if(G[p]==G[B[p]])
+                        if(G[p]==origal_G[p]&&G[B[p]]==origal_G[p])
                         {
                             C[B[p]]=-C[B[p]];
                             G[B[p]]=0;
@@ -129,7 +137,7 @@ void MCMF_ZKW:: flow_test()
         current_node=bfs_queue.front();
         bfs_queue.pop();
 //        cout<<"node:"<<current_node<<endl;
-        if(current_node==77)
+        if(current_node==22)
         {
             cout<<"key:"<<endl;
         }
@@ -168,12 +176,12 @@ void MCMF_ZKW:: Zkw_Flow()
 
      for (i=0;i<=T;i++) d[i]=0,slk[i]=INF;
      do{
-
+//        cout<<endl<<"new dist"<<d[S]<<endl;
          do {
             memset(v,0,sizeof(v));
-            cout<<"new route"<<endl;
+//            cout<<"new route"<<endl;
          }while (aug(S,INF));
-        cout<<endl<<"new dist"<<d[S]<<endl;
+
      }while (!modlabel());
 
 //    cout<<ans<<endl;

@@ -246,10 +246,14 @@ string flow2string(void)
 	Edge* e=NULL;
 
 	route_cnt = 0;
+
+	int _tmp_route_cost;
 	while (remain_deman){
 		route_flow = INF;
 		cur_node = node_cnt;
 		route_string = "\n";
+
+		_tmp_route_cost=0;
 		while (cur_node != node_cnt + 1){
 			//find a e
 			for (unsigned int i = 0; i<G[cur_node].size(); i++)
@@ -262,6 +266,8 @@ string flow2string(void)
 			cur_node = e->to;
 			route_flow = min(route_flow, e->flow);
 			//update cur_node
+
+			_tmp_route_cost+=e->cost;
 		}
 
 
@@ -279,6 +285,10 @@ string flow2string(void)
 		route_string = route_string.append(SSTR(node2demand[e->to]));
 		route_string = route_string.append(" ");
 		route_string = route_string.append(SSTR(route_flow));
+
+        route_string = route_string.append(" deepth:");
+		route_string = route_string.append(SSTR(_tmp_route_cost));
+
 		route_cnt++;
 		//        cout<<route_string<<endl;
 		out_string.append(route_string);
