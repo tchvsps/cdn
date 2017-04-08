@@ -105,7 +105,7 @@ void same_eff_test(void)
 //            zkw.flow_test();
             dif_cnt++;
         }
-        if(time(NULL)-t1>10){cout<<"all cnt:"<<i<<" dif cnt:"<<dif_cnt<<endl;; break;}
+        if(time(NULL)-t1>30){cout<<"all cnt:"<<i<<" dif cnt:"<<dif_cnt<<endl;; break;}
     }
     if(dif_cnt==0){ cout<<"GOOD: zkw spfa is equal effect"<<endl<<endl;}
     else{cout<<"BAD !!!"<<endl<<endl;}

@@ -28,6 +28,7 @@ class MCMF_ZKW
     int all_demand;
 
     int zkw_last_service_size;
+    int last_service_vector[maxn];
 
     public:
     MCMF_ZKW(){zkw_last_service_size=0;}

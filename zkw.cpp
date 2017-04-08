@@ -32,18 +32,15 @@ void MCMF_ZKW::add_two(int a,int b,int up,int co)
 
 void MCMF_ZKW::delete_service(void)
 {
-  for(unsigned int i=0; i<this->zkw_last_service_size; i++)
-  {
-    //edge index :tot
-    int _start = V[tot];
-    int _end=V[tot-1];
-    F[_start]=N[F[_start]];
-    F[_end]=N[F[_end]];
-
-    tot--;
-    tot--;
-  }
-  memcpy(G,origal_G,sizeof(G));
+    int _tmp_node_index;
+    for(unsigned int i=0; i<this->zkw_last_service_size; i++)
+    {
+        _tmp_node_index=this->last_service_vector[i];
+        F[_tmp_node_index]=N[F[_tmp_node_index]];
+    }
+    tot-=this->zkw_last_service_size;
+    memcpy(G,origal_G,sizeof(G[0])*(tot+1));
+    memcpy(C,origal_C,sizeof(C[0])*(tot+1));
 }
 
 extern unsigned int edge_cnt;
@@ -74,9 +71,6 @@ int MCMF_ZKW:: aug(int u,int f)
                 int delt=aug(V[p],G[p]< left? G[p] : left);
                 if (delt>0) {
 //                    cout<<"update:"<<u<<"->"<<V[p]<<": "<<delt<<endl;
-                    if((u==16&&V[p]==0)||(u==0&&V[p]==16)){
-//                        cout<<"key edges"<<endl;
-                    }
                     if(p<=edge_cnt*2){
                         if(G[p]==origal_G[p]&&G[B[p]]==origal_G[p])
                         {
@@ -178,7 +172,7 @@ void MCMF_ZKW:: Zkw_Flow()
      do{
 //        cout<<endl<<"new dist"<<d[S]<<endl;
          do {
-            memset(v,0,sizeof(v));
+            memset(v,0,sizeof(v[0])*(node_cnt+1));
 //            cout<<"new route"<<endl;
          }while (aug(S,INF));
 
@@ -230,34 +224,37 @@ void MCMF_ZKW:: init_graph(char * topo[], int line_num)
         add(_node_cnt,service_index,demand,0);
     }
 
-    memcpy(origal_G,G,sizeof(G));
-    memcpy(origal_V,V,sizeof(V));
-    memcpy(origal_C,C,sizeof(C));
-    memcpy(origal_N,N,sizeof(N));
-    memcpy(origal_F,F,sizeof(F));
-    memcpy(origal_B,B,sizeof(B));
+    memcpy(origal_G,G,sizeof(G[0])*(tot+1));
+    memcpy(origal_V,V,sizeof(V[0])*(tot+1));
+    memcpy(origal_C,C,sizeof(C[0])*(tot+1));
+    memcpy(origal_N,N,sizeof(N[0])*(tot+1));
+    memcpy(origal_B,B,sizeof(B[0])*(tot+1));
+
+    memcpy(origal_F,F,sizeof(F[0])*(node_cnt+1));
     origal_tot=tot;
+    zkw_last_service_size=0;
 }
 
 
 void MCMF_ZKW:: add_service(set<unsigned int> ser_set)
 {
-//    delete_service();
+    delete_service();
 
-    memcpy(G,origal_G,sizeof(G));
-    memcpy(V,origal_V,sizeof(V));
-    memcpy(C,origal_C,sizeof(C));
-    memcpy(N,origal_N,sizeof(N));
-    memcpy(F,origal_F,sizeof(F));
-    memcpy(B,origal_B,sizeof(B));
-    tot=origal_tot;
+//    memcpy(G,origal_G,sizeof(G));
+//    memcpy(V,origal_V,sizeof(V));
+//    memcpy(C,origal_C,sizeof(C));
+//    memcpy(N,origal_N,sizeof(N));
+//    memcpy(F,origal_F,sizeof(F));
+//    memcpy(B,origal_B,sizeof(B));
+//    tot=origal_tot;
 
+    this->zkw_last_service_size=0;
     set<unsigned int>::iterator set_iter;
     for(set_iter=ser_set.begin(); set_iter!=ser_set.end(); set_iter++)
     {
         add(*set_iter,node_cnt+1,INF,0);
+        last_service_vector[this->zkw_last_service_size++]=(*set_iter);
     }
-    this->zkw_last_service_size=ser_set.size();
 }
 
 
