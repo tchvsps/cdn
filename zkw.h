@@ -11,7 +11,7 @@
 #include<iostream>
 
 using namespace std;
-#define maxn 1000
+#define maxn 2000
 #define maxm 15000
 #define INF 1<<30
 
@@ -33,6 +33,7 @@ class MCMF_ZKW
     MCMF_ZKW(){zkw_last_service_size=0;}
     void dw(int &a,int b);
     void add(int a,int b,int up,int co);
+    void add_two(int a,int b,int up,int co);
     int aug(int u,int f);
     bool modlabel();
     void Zkw_Flow();
@@ -40,6 +41,7 @@ class MCMF_ZKW
     void init_graph(char * topo[], int line_num);
     void add_service(set<unsigned int> ser_set);
     void delete_service(void);
+    void flow_test();
 };
 
 

@@ -1,6 +1,13 @@
 
 #include "zkw.h"
 
+//http://blog.sina.com.cn/s/blog_76f6777d0101bbc8.html
+using namespace std;
+
+extern unsigned int node_cnt;
+extern unsigned int demand_cnt;
+
+
 void MCMF_ZKW::dw(int &a,int b){ if (b< a) a=b; }
 
 void MCMF_ZKW:: add(int a,int b,int up,int co)
@@ -8,6 +15,19 @@ void MCMF_ZKW:: add(int a,int b,int up,int co)
     ++tot;
     V[tot]=b;G[tot]=up;C[tot]=co;
     N[tot]=F[a];  F[a]=tot;
+}
+
+void MCMF_ZKW::add_two(int a,int b,int up,int co)
+{
+    ++tot;
+    V[tot]=b;G[tot]=up;C[tot]=co;
+    N[tot]=F[a];  F[a]=tot;
+
+    ++tot;
+    V[tot]=a;G[tot]=up;C[tot]=co;
+    N[tot]=F[b];  F[b]=tot;
+
+    B[tot]=tot-1; B[tot-1]=tot;
 }
 
 void MCMF_ZKW::delete_service(void)
@@ -30,42 +50,52 @@ extern unsigned int edge_cnt;
 
 int MCMF_ZKW:: aug(int u,int f)
 {
-   int p,t,left=f;
-   if (u==T) { all_demand+=f; ans+=f*d[S];return f; }
-   v[u]=1;
-   for (p=F[u];p;p=N[p])
-   {
-     if (G[p]>0&&!v[V[p]])
-     {
-       t=d[V[p]]+C[p]-d[u];
-       if (t==0)
-       {
-          int delt=aug(V[p],G[p]< left? G[p] : left);
-          if (delt>0) {
-            if(p<=edge_cnt*2)
+    int p,t,left=f;
+    if (u==T) {
+        all_demand+=f; ans+=f*d[S];
+//        cout<<"reach"<<u<<" bandwidth:"<<f<<" deep:"<<d[S]<<endl;
+        return f;
+    }
+
+    v[u]=1;
+//    cout<<"visit in "<<u<<endl;
+    for (p=F[u];p;p=N[p])
+    {
+        if (G[p]>0&&!v[V[p]])
+        {
+            t=d[V[p]]+C[p]-d[u];
+            if (t==0)
             {
-                if(G[p]==G[B[p]])
-                {
-                  C[B[p]]=-C[B[p]];
-                  G[B[p]]=0;
+                int delt=aug(V[p],G[p]< left? G[p] : left);
+                if (delt>0) {
+                    cout<<"update:"<<u<<"->"<<V[p]<<": "<<delt<<endl;
+                    if(p<=edge_cnt*2){
+                        if(G[p]==G[B[p]])
+                        {
+                            C[B[p]]=-C[B[p]];
+                            G[B[p]]=0;
+                        }
+                        G[p]-=delt,G[B[p]]+=delt,left-=delt;
+                        if(C[p]<0 && G[p]==0)
+                        {
+                            G[p]=G[B[p]];
+                            C[p]=-C[p];
+                        }
+                    }else{
+                        G[p]-=delt;left-=delt;
+                    }
                 }
-                G[p]-=delt,G[B[p]]+=delt,left-=delt;
-                if(G[p]==origal_G[p])
-                {
 
+                if (left==0){
+//                cout<<"back from "<<u<<endl;
+                return f;
                 }
+            }else dw(slk[V[p]],t);
+        }
+    }
 
-            }else
-            {
-                G[p]-=delt;
-            }
-
-          }
-          if (left==0) return f;
-       }else dw(slk[V[p]],t);
-     }
-   }
-   return f-left;
+//    cout<<"back from "<<u<<endl;
+    return f-left;
 }
 
 bool MCMF_ZKW:: modlabel()
@@ -83,6 +113,54 @@ extern unsigned int deploy_cost;
 extern set<unsigned int> service_set;
 extern unsigned int demand_sum;
 
+unsigned int thing_in_node[2000];
+
+void MCMF_ZKW:: flow_test()
+{
+    memset(thing_in_node,sizeof(thing_in_node),0);
+    thing_in_node[node_cnt]=demand_sum;
+    queue<unsigned int> bfs_queue;
+    bfs_queue.push(node_cnt);
+
+    unsigned int current_node;
+    unsigned int node_demand_out;
+    unsigned int current_edge;
+    while(!bfs_queue.empty()){
+        current_node=bfs_queue.front();
+        bfs_queue.pop();
+//        cout<<"node:"<<current_node<<endl;
+        if(current_node==77)
+        {
+            cout<<"key:"<<endl;
+        }
+
+        for(current_edge=F[current_node];current_edge;current_edge=N[current_edge])
+        {
+            if(C[current_edge]>=0){
+                int _tmp_origal_G;
+                if(current_edge<=edge_cnt*2+demand_cnt) {_tmp_origal_G=origal_G[current_edge];}
+                else{_tmp_origal_G=INF;}
+                int _tmp_flow=min((int)thing_in_node[current_node],_tmp_origal_G-G[current_edge]);
+                if(_tmp_flow>0)
+                {
+                    cout<<current_node<<"->"<<V[current_edge]<<":"<<_tmp_flow<<endl;
+                    thing_in_node[current_node]-=_tmp_flow;
+                    thing_in_node[V[current_edge]]+=_tmp_flow;
+                    G[current_edge]+=_tmp_flow;
+                    bfs_queue.push(V[current_edge]);
+                }
+            };
+        }
+    }
+
+    cout<<"end of tran:";
+    for(unsigned int i=0; i<node_cnt+2;i++){
+        if(thing_in_node[i]==0){cout<<" "<<thing_in_node[i];}
+        else{cout<<" "<<thing_in_node[i]<<"("<<i<<")";}
+    }
+
+    cout<<endl;
+}
 void MCMF_ZKW:: Zkw_Flow()
 {
      int i;ans=0;
@@ -90,9 +168,12 @@ void MCMF_ZKW:: Zkw_Flow()
 
      for (i=0;i<=T;i++) d[i]=0,slk[i]=INF;
      do{
+
          do {
             memset(v,0,sizeof(v));
+            cout<<"new route"<<endl;
          }while (aug(S,INF));
+        cout<<endl<<"new dist"<<d[S]<<endl;
      }while (!modlabel());
 
 //    cout<<ans<<endl;
@@ -131,8 +212,7 @@ void MCMF_ZKW:: init_graph(char * topo[], int line_num)
     for(unsigned int i=4; i<4+_edge_cnt; i++)
     {
         sscanf(topo[i],"%d %d %d %d",&start_node,&stop_node,&bandwidth,&length);
-        add(start_node,stop_node,bandwidth,length);
-        add(stop_node,start_node,bandwidth,length);
+        add_two(start_node,stop_node,bandwidth,length);
     }
 
     unsigned int demand_index,service_index,demand;
@@ -151,8 +231,6 @@ void MCMF_ZKW:: init_graph(char * topo[], int line_num)
     origal_tot=tot;
 }
 
-extern unsigned int node_cnt;
-extern unsigned int demand_cnt;
 
 void MCMF_ZKW:: add_service(set<unsigned int> ser_set)
 {

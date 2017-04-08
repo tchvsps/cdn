@@ -77,23 +77,32 @@ void same_eff_test(void)
     int last_cost;
     int dif_cnt;
     cout<<"same effect test..."<<endl;
-    for(unsigned int i=0 ; i<100000; i++){
-        init_set(demand_cnt*2);
+    for(unsigned int i=0 ; i<1000; i++){
+        init_set(demand_cnt*0.5);
+
 
         init_service(service_set,last_service_size);
         last_cost=MCMF();
-
+        if(i==145)
+        {
+            cout<<"BUG OCCURE:"<<endl<<endl<<endl<<endl<<endl<<endl<<endl<<endl<<endl<<endl<<endl<<endl<<endl<<endl<<endl<<endl<<endl<<endl<<endl<<endl<<endl;
+            cout<<flow2string()<<endl;
+        }
         zkw.add_service(service_set);
         zkw.Zkw_Flow();
 
 //        cout<<"spfa :"<<last_cost<<" "<<"zkw :"<<zkw.ans<<endl;
         if(last_cost!=zkw.ans)
         {
+            cout<<"spfa :"<<last_cost<<" "<<"zkw :"<<zkw.ans<<endl;
+
+//            zkw.flow_test();
             dif_cnt++;
         }
-        if(time(NULL)-t1>5){cout<<"all cnt:"<<i<<" dif cnt:"<<dif_cnt<<endl;; break;}
+        if(time(NULL)-t1>10){cout<<"all cnt:"<<i<<" dif cnt:"<<dif_cnt<<endl;; break;}
     }
-    if(dif_cnt==0) cout<<"GOOD: zkw spfa is equal effect"<<endl<<endl;
+    if(dif_cnt==0){ cout<<"GOOD: zkw spfa is equal effect"<<endl<<endl;}
+    else{cout<<"BAD !!!"<<endl<<endl;}
 }
 
 void spfa_zkw_time_test(void)
@@ -150,13 +159,30 @@ void zkw_speed_test(void){
     }
 }
 
+void zkw_opt_test(void)
+{
+        init_set(demand_cnt*2);
+        init_service(service_set,last_service_size);
+        int last_cost=MCMF();
+        cout<<flow2string()<<endl;
+
+        zkw.add_service(service_set);
+        zkw.Zkw_Flow();
+        zkw.flow_test();
+        if(last_cost!=zkw.ans){
+            cout<<"BAD!!"<<endl;
+        }
+        else{
+            cout<<"GOOD THANK GOD"<<endl;
+        }
+}
 
 void deploy_server(char * topo[MAX_EDGE_NUM], int line_num,char * filename)
 {
     t1=time(NULL);
 
-    srand(time(NULL));
-//    srand(0);
+//    srand(time(NULL));
+    srand(0);
 
     last_service_size=0;
     init_graph(topo,line_num);
@@ -164,8 +190,8 @@ void deploy_server(char * topo[MAX_EDGE_NUM], int line_num,char * filename)
 
     zkw.Init(node_cnt,node_cnt+1);
     zkw.init_graph(topo,line_num);
-
     same_eff_test();
+//    zkw_opt_test();
 //    spfa_zkw_time_test();
 //    zkw_speed_test();
 //    for(unsigned int i=0; i<demand_cnt*2; i++){

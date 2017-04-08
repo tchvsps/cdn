@@ -233,60 +233,60 @@ int MCMF(void)
 
 string flow2string(void)
 {
-    int remain_deman=demand_sum;
+	int remain_deman = demand_sum;
 
-    string out_string="";
-    string route_string="";
-    unsigned int route_cnt;
+	string out_string = "";
+	string route_string = "";
+	unsigned int route_cnt;
 
-    stack<Edge*> route;
-    int route_flow;
+	stack<Edge*> route;
+	int route_flow;
 
-    unsigned int cur_node;
-    Edge* e;
+	unsigned int cur_node;
+	Edge* e=NULL;
 
-    route_cnt=0;
-    while(remain_deman){
-        route_flow=INF;
-        cur_node=node_cnt;
-        route_string="\n";
-        while(cur_node!=node_cnt+1){
-            //find a e
-            for(unsigned int i=0; i<G[cur_node].size(); i++)
-            {
-                e=&edges[G[cur_node][i]];
-                if(e->cost>=0 && e->flow>0){break;}
-            }
-            //push e
-            route.push(e);
-            cur_node=e->to;
-            route_flow=min(route_flow,e->flow);
-            //update cur_node
-        }
+	route_cnt = 0;
+	while (remain_deman){
+		route_flow = INF;
+		cur_node = node_cnt;
+		route_string = "\n";
+		while (cur_node != node_cnt + 1){
+			//find a e
+			for (unsigned int i = 0; i<G[cur_node].size(); i++)
+			{
+				e = &edges[G[cur_node][i]];
+				if (e->cost >= 0 && e->flow>0){ break; }
+			}
+			//push e
+			route.push(e);
+			cur_node = e->to;
+			route_flow = min(route_flow, e->flow);
+			//update cur_node
+		}
 
 
-        remain_deman-=route_flow;
-        //find a route
-        route.pop();
-        while(!route.empty())
-        {
-            e=route.top();
-            route.pop();
-            route_string=route_string.append(SSTR(e->to));
-            route_string=route_string.append(" ");
-            e->flow-=route_flow;
-        }
-        route_string=route_string.append(SSTR(node2demand[e->to]));
-        route_string=route_string.append(" ");
-        route_string=route_string.append(SSTR(route_flow));
-        route_cnt++;
-//        cout<<route_string<<endl;
-        out_string.append(route_string);
-    }
-    string cnt_string=SSTR(route_cnt);
-    cnt_string=cnt_string.append("\n");
-    out_string=cnt_string.append(out_string);
-    return out_string;
+		remain_deman -= route_flow;
+		//find a route
+		route.pop();
+		while (!route.empty())
+		{
+			e = route.top();
+			route.pop();
+			route_string = route_string.append(SSTR(e->to));
+			route_string = route_string.append(" ");
+			e->flow -= route_flow;
+		}
+		route_string = route_string.append(SSTR(node2demand[e->to]));
+		route_string = route_string.append(" ");
+		route_string = route_string.append(SSTR(route_flow));
+		route_cnt++;
+		//        cout<<route_string<<endl;
+		out_string.append(route_string);
+	}
+	string cnt_string = SSTR(route_cnt);
+	cnt_string = cnt_string.append("\n");
+	out_string = cnt_string.append(out_string);
+	return out_string;
 }
 
 
